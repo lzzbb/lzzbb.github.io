@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="author" content="map[name:lzz]">
+<meta name="description" content="DCShadow简介 DCShadow是指攻击者获取到域控管理员权限后，将攻陷的主机伪装成为DC(域控制器)，在伪装的DC上修改数据，然后触发域数据同步，使得指定的新对象或修改后的属性能够同步进入其他的DC中，从而达到权限维持的目的。
+nTDSDSA对象 在Windows域环境中，域控制器与普通主机的区别体现在活动目录数据库中，在活动目录数据库中通过一些特殊对象以及一定的数据对象层级关系来标识某台机器是域控制器。其中最关键的是nTDSDSA对象，该对象正是标识一台主机是域控角色的特殊对象，其位于活动目录数据库的configuration NC中
+伪装域控 在Windows域环境中，域控和普通主机的区别体现在活动目录数据库中。AD数据库中使用nTDSDSA对象来表示域控制器，该对象始终位于活动目录数据库的配置（configuration NC）中，每个DC都存储在站点容器内,是server对象的子节点，其完整的DN为“CN=NTDS Settings,CN=ServerName,CN=Servers,CN=Default-First-Site-Name,CN=Sites,CN=Configuration,DC=redteam,DC=lab”。因此，只要在schema的Configuration区中创建一个新的server及nTDSDSA对象，KCC就会将目标主机识别为DC。
+通过DCShadow修改任意用户属性 通过查看权限后发现，SYSTEM、Domain Admins、Enterprise Admins、Administrators 可以在Configuration区中创建nTDSDSA对象。
+获得当前机器的SYSTEM权限（这个令牌就具备了伪造域控的所需权限）
+执行数据更改与监听
+lsadump::dcshadow /object:marry /attribute:description /value:”carn” /object：更改信息的账号 /attribute：要更改的属性 /value：更改属性的值 以域管权限新打开一个mimikatz窗口（可以psexec远程调用），执行push，触发域控间数据同步过程
+mimikatz # lsadump::dcshadow /push
+marry的属性发生改变
+既然活动目录能通过DCShadow进行修改，在实际攻击场景中，可以修改primarygroupid，SidHistory，委派等属性进行利用。
+变更用户的所属组 lsadump::dcshadow /object:marry /attribute:primarygroupid /value:512
+其中：512为Domain Admins所属组，在根域中，519为Enterprise Admins所属组（子域中没有EA组）
+marry变为Domain Admins组内用户
+可以通过4929事件记录所有详细的目录服务复制
+前提需要开启本地安全策略中的审核目录服务访问（默认是关闭状态）
+防御 DCShadow不是漏洞而是滥用了目录中的同步服务。
+1.记录目录服务访问事件（EventID=4929)，监控所有发生4929事件来识别伪装的域控。
+2.增强对域管的管理，防止其凭证泄漏。" />
+<meta name="keywords" content="homepage, blog, science, informatics, development, programming, AD, backdoor" />
+<meta name="robots" content="noodp" />
+<meta name="theme-color" content="" />
+<link rel="canonical" href="https://lzzbb.github.io/posts/2021/08/dcshadow/" />
+
+
+    <title>
+        
+            DCShadow :: lzzzzzzz 
+        
+    </title>
+
+
+
+<link href="https://cdnjs.cloudflare.com/ajax/libs/flag-icon-css/3.5.0/css/flag-icon.min.css" rel="stylesheet"
+    type="text/css">
+
+
+
+<link rel="stylesheet" href="https://lzzbb.github.io/main.2461b42f711aae674dd78e353275891fa072d7bf2ea9fbd577297a99dde78461.css">
+
+
+
+    <link rel="apple-touch-icon" sizes="180x180" href="https://lzzbb.github.io/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="https://lzzbb.github.io/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="https://lzzbb.github.io/favicon-16x16.png">
+    <link rel="manifest" href="https://lzzbb.github.io/site.webmanifest">
+    <link rel="mask-icon" href="https://lzzbb.github.io/safari-pinned-tab.svg" color="">
+    <link rel="shortcut icon" href="https://lzzbb.github.io/favicon.ico">
+    <meta name="msapplication-TileColor" content="">
+
+
+<meta itemprop="name" content="DCShadow">
+<meta itemprop="description" content="DCShadow简介 DCShadow是指攻击者获取到域控管理员权限后，将攻陷的主机伪装成为DC(域控制器)，在伪装的DC上修改数据，然后触发域数据同步，使得指定的新对象或修改后的属性能够同步进入其他的DC中，从而达到权限维持的目的。
+nTDSDSA对象 在Windows域环境中，域控制器与普通主机的区别体现在活动目录数据库中，在活动目录数据库中通过一些特殊对象以及一定的数据对象层级关系来标识某台机器是域控制器。其中最关键的是nTDSDSA对象，该对象正是标识一台主机是域控角色的特殊对象，其位于活动目录数据库的configuration NC中
+伪装域控 在Windows域环境中，域控和普通主机的区别体现在活动目录数据库中。AD数据库中使用nTDSDSA对象来表示域控制器，该对象始终位于活动目录数据库的配置（configuration NC）中，每个DC都存储在站点容器内,是server对象的子节点，其完整的DN为“CN=NTDS Settings,CN=ServerName,CN=Servers,CN=Default-First-Site-Name,CN=Sites,CN=Configuration,DC=redteam,DC=lab”。因此，只要在schema的Configuration区中创建一个新的server及nTDSDSA对象，KCC就会将目标主机识别为DC。
+通过DCShadow修改任意用户属性 通过查看权限后发现，SYSTEM、Domain Admins、Enterprise Admins、Administrators 可以在Configuration区中创建nTDSDSA对象。
+获得当前机器的SYSTEM权限（这个令牌就具备了伪造域控的所需权限）
+执行数据更改与监听
+lsadump::dcshadow /object:marry /attribute:description /value:”carn” /object：更改信息的账号 /attribute：要更改的属性 /value：更改属性的值 以域管权限新打开一个mimikatz窗口（可以psexec远程调用），执行push，触发域控间数据同步过程
+mimikatz # lsadump::dcshadow /push
+marry的属性发生改变
+既然活动目录能通过DCShadow进行修改，在实际攻击场景中，可以修改primarygroupid，SidHistory，委派等属性进行利用。
+变更用户的所属组 lsadump::dcshadow /object:marry /attribute:primarygroupid /value:512
+其中：512为Domain Admins所属组，在根域中，519为Enterprise Admins所属组（子域中没有EA组）
+marry变为Domain Admins组内用户
+可以通过4929事件记录所有详细的目录服务复制
+前提需要开启本地安全策略中的审核目录服务访问（默认是关闭状态）
+防御 DCShadow不是漏洞而是滥用了目录中的同步服务。
+1.记录目录服务访问事件（EventID=4929)，监控所有发生4929事件来识别伪装的域控。
+2.增强对域管的管理，防止其凭证泄漏。"><meta itemprop="datePublished" content="2021-08-14T00:00:00+00:00" />
+<meta itemprop="dateModified" content="2022-05-20T21:46:30+08:00" />
+<meta itemprop="wordCount" content="46"><meta itemprop="image" content="https://lzzbb.github.io/"/>
+<meta itemprop="keywords" content="AD,backdoor," />
+<meta name="twitter:card" content="summary_large_image"/>
+<meta name="twitter:image" content="https://lzzbb.github.io/"/>
+
+<meta name="twitter:title" content="DCShadow"/>
+<meta name="twitter:description" content="DCShadow简介 DCShadow是指攻击者获取到域控管理员权限后，将攻陷的主机伪装成为DC(域控制器)，在伪装的DC上修改数据，然后触发域数据同步，使得指定的新对象或修改后的属性能够同步进入其他的DC中，从而达到权限维持的目的。
+nTDSDSA对象 在Windows域环境中，域控制器与普通主机的区别体现在活动目录数据库中，在活动目录数据库中通过一些特殊对象以及一定的数据对象层级关系来标识某台机器是域控制器。其中最关键的是nTDSDSA对象，该对象正是标识一台主机是域控角色的特殊对象，其位于活动目录数据库的configuration NC中
+伪装域控 在Windows域环境中，域控和普通主机的区别体现在活动目录数据库中。AD数据库中使用nTDSDSA对象来表示域控制器，该对象始终位于活动目录数据库的配置（configuration NC）中，每个DC都存储在站点容器内,是server对象的子节点，其完整的DN为“CN=NTDS Settings,CN=ServerName,CN=Servers,CN=Default-First-Site-Name,CN=Sites,CN=Configuration,DC=redteam,DC=lab”。因此，只要在schema的Configuration区中创建一个新的server及nTDSDSA对象，KCC就会将目标主机识别为DC。
+通过DCShadow修改任意用户属性 通过查看权限后发现，SYSTEM、Domain Admins、Enterprise Admins、Administrators 可以在Configuration区中创建nTDSDSA对象。
+获得当前机器的SYSTEM权限（这个令牌就具备了伪造域控的所需权限）
+执行数据更改与监听
+lsadump::dcshadow /object:marry /attribute:description /value:”carn” /object：更改信息的账号 /attribute：要更改的属性 /value：更改属性的值 以域管权限新打开一个mimikatz窗口（可以psexec远程调用），执行push，触发域控间数据同步过程
+mimikatz # lsadump::dcshadow /push
+marry的属性发生改变
+既然活动目录能通过DCShadow进行修改，在实际攻击场景中，可以修改primarygroupid，SidHistory，委派等属性进行利用。
+变更用户的所属组 lsadump::dcshadow /object:marry /attribute:primarygroupid /value:512
+其中：512为Domain Admins所属组，在根域中，519为Enterprise Admins所属组（子域中没有EA组）
+marry变为Domain Admins组内用户
+可以通过4929事件记录所有详细的目录服务复制
+前提需要开启本地安全策略中的审核目录服务访问（默认是关闭状态）
+防御 DCShadow不是漏洞而是滥用了目录中的同步服务。
+1.记录目录服务访问事件（EventID=4929)，监控所有发生4929事件来识别伪装的域控。
+2.增强对域管的管理，防止其凭证泄漏。"/>
+
+
+
+
+
+
+
+
+    <meta property="article:published_time" content="2021-08-14 00:00:00 &#43;0000 UTC" />
+
+
+
+
+
+
+
+
+
+
+    </head>
+
+    
+        <body>
+    
+    
+        <div class="container">
+            <header class="header">
+    <span class="header__inner">
+        <a href="https://lzzbb.github.io/" style="text-decoration: none;">
+    <div class="logo">
+        
+            <span class="logo__mark">></span>
+            <span class="logo__text">cd ~/</span>
+            <span class="logo__cursor" style=
+                  "
+                   
+                   ">
+            </span>
+        
+    </div>
+</a>
+
+
+        <span class="header__right">
+            
+                <nav class="menu">
+    <ul class="menu__inner"><li><a href="https://lzzbb.github.io/posts">Posts</a></li><li><a href="https://lzzbb.github.io/tags/">Tags</a></li>
+    </ul>
+</nav>
+
+                <span class="menu-trigger">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                        <path d="M0 0h24v24H0z" fill="none"/>
+                        <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/>
+                    </svg>
+                </span>
+            
+        </span>
+    </span>
+</header>
+
+
+            <div class="content">
+                
+  <main class="post">
+
+    <div class="post-info">
+      <p>
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-clock">
+          <circle cx="12" cy="12" r="10"></circle>
+          <polyline points="12 6 12 12 16 14"></polyline>
+        </svg>
+        One minute
+
+        
+      </p>
+    </div>
+
+    <article>
+      <h1 class="post-title">
+        <a href="https://lzzbb.github.io/posts/2021/08/dcshadow/">DCShadow</a>
+      </h1>
+
+      
+
+      
+
+      
+
+      <div class="post-content">
+        <h2 id="dcshadow简介">DCShadow简介</h2>
+<p>DCShadow是指攻击者获取到域控管理员权限后，将攻陷的主机伪装成为DC(域控制器)，在伪装的DC上修改数据，然后触发域数据同步，使得指定的新对象或修改后的属性能够同步进入其他的DC中，从而达到权限维持的目的。</p>
+<h3 id="ntdsdsa对象">nTDSDSA对象</h3>
+<p>在Windows域环境中，域控制器与普通主机的区别体现在活动目录数据库中，在活动目录数据库中通过一些特殊对象以及一定的数据对象层级关系来标识某台机器是域控制器。其中最关键的是nTDSDSA对象，该对象正是标识一台主机是域控角色的特殊对象，其位于活动目录数据库的configuration NC中</p>
+<h3 id="伪装域控">伪装域控</h3>
+<p>在Windows域环境中，域控和普通主机的区别体现在活动目录数据库中。AD数据库中使用nTDSDSA对象来表示域控制器，该对象始终位于活动目录数据库的配置（configuration NC）中，每个DC都存储在站点容器内,是server对象的子节点，其完整的DN为“CN=NTDS Settings,CN=ServerName,CN=Servers,CN=Default-First-Site-Name,CN=Sites,CN=Configuration,DC=redteam,DC=lab”。因此，只要在schema的Configuration区中创建一个新的server及nTDSDSA对象，KCC就会将目标主机识别为DC。</p>
+<h3 id="通过dcshadow修改任意用户属性">通过DCShadow修改任意用户属性</h3>
+<p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/Dcshadow/1.png" alt=""></p>
+<p>通过查看权限后发现，SYSTEM、Domain Admins、Enterprise Admins、Administrators 可以在Configuration区中创建nTDSDSA对象。</p>
+<p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/Dcshadow/2.png" alt=""></p>
+<p>获得当前机器的SYSTEM权限（这个令牌就具备了伪造域控的所需权限）</p>
+<p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/Dcshadow/3.png" alt=""></p>
+<p>执行数据更改与监听</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-text" data-lang="text"><span class="line"><span class="cl">lsadump::dcshadow /object:marry /attribute:description /value:”carn”
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">/object：更改信息的账号
+</span></span><span class="line"><span class="cl">/attribute：要更改的属性
+</span></span><span class="line"><span class="cl">/value：更改属性的值
+</span></span></code></pre></div><p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/Dcshadow/4.png" alt=""></p>
+<p>以域管权限新打开一个mimikatz窗口（可以psexec远程调用），执行push，触发域控间数据同步过程</p>
+<p><code>mimikatz #  lsadump::dcshadow /push</code></p>
+<p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/Dcshadow/5.png" alt=""></p>
+<p>marry的属性发生改变</p>
+<p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/Dcshadow/6.png" alt=""></p>
+<p>既然活动目录能通过DCShadow进行修改，在实际攻击场景中，可以修改primarygroupid，SidHistory，委派等属性进行利用。</p>
+<h3 id="变更用户的所属组">变更用户的所属组</h3>
+<p><code>lsadump::dcshadow /object:marry /attribute:primarygroupid /value:512</code></p>
+<p>其中：512为Domain Admins所属组，在根域中，519为Enterprise Admins所属组（子域中没有EA组）</p>
+<p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/Dcshadow/7.png" alt=""></p>
+<p>marry变为Domain Admins组内用户</p>
+<p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/Dcshadow/8.png" alt=""></p>
+<p>可以通过4929事件记录所有详细的目录服务复制</p>
+<p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/Dcshadow/9.png" alt=""></p>
+<p>前提需要开启本地安全策略中的审核目录服务访问（默认是关闭状态）</p>
+<p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/Dcshadow/10.png" alt=""></p>
+<h2 id="防御">防御</h2>
+<p><strong>DCShadow不是漏洞而是滥用了目录中的同步服务。</strong></p>
+<p>1.记录目录服务访问事件（EventID=4929)，监控所有发生4929事件来识别伪装的域控。</p>
+<p>2.增强对域管的管理，防止其凭证泄漏。</p>
+
+      </div>
+    </article>
+
+    <hr />
+
+    <div class="post-info">
+      
+    <p>
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-tag meta-icon"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7" y2="7"></line></svg>
+
+        <span class="tag"><a href="https://lzzbb.github.io/tags/ad/">AD</a></span>
+        <span class="tag"><a href="https://lzzbb.github.io/tags/backdoor/">backdoor</a></span>
+        
+    </p>
+
+      
+
+      <p>
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-file-text">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+          <polyline points="14 2 14 8 20 8"></polyline>
+          <line x1="16" y1="13" x2="8" y2="13"></line>
+          <line x1="16" y1="17" x2="8" y2="17"></line>
+          <polyline points="10 9 9 9 8 9"></polyline>
+        </svg>
+        46 Words
+      </p>
+
+      <p>
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-calendar">
+          <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+          <line x1="16" y1="2" x2="16" y2="6"></line>
+          <line x1="8" y1="2" x2="8" y2="6"></line>
+          <line x1="3" y1="10" x2="21" y2="10"></line>
+        </svg>
+        
+          2021-08-14 08:00 &#43;0800
+        
+
+         
+          
+            
+              (Last updated: 2022-05-20 21:46 &#43;0800)
+            
+          
+        
+      </p>
+        <p>
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-git-commit">
+            <circle cx="12" cy="12" r="4"></circle>
+            <line x1="1.05" y1="12" x2="7" y2="12"></line>
+            <line x1="17.01" y1="12" x2="22.96" y2="12"></line>
+          </svg>
+
+          <a href="https://github.com/coolbluemelvin/mlvn.io/commit/0b81056c455f426f87d0c9280966d549475e967f" target="_blank" rel="noopener">0b81056</a>
+          @ 2022-05-20
+        </p>
+    </div>
+
+    
+    <div class="pagination">
+        
+        <div class="pagination__title">
+            <span class="pagination__title-h">Read other posts</span>
+            <hr />
+        </div>
+        
+
+        <div class="pagination__buttons">
+            
+            <span class="button previous">
+                <a href="https://lzzbb.github.io/posts/2021/09/mscash/">
+                    <span class="button__icon">←</span>
+                    <span class="button__text">MSCASH</span>
+                </a>
+            </span>
+            
+
+            
+            <span class="button next">
+                <a href="https://lzzbb.github.io/posts/2021/06/hash%E7%99%BB%E9%99%86rdp/">
+                    <span class="button__text">hash登陆RDP</span>
+                    <span class="button__icon">→</span>
+                </a>
+            </span>
+            
+        </div>
+    </div>
+
+
+    
+
+    
+
+  </main>
+
+            </div>
+
+            
+                <footer class="footer">
+    
+    
+</footer>
+
+            
+        </div>
+
+        
+
+
+
+<script type="text/javascript" src="https://lzzbb.github.io/bundle.min.a2c5b062c87998f04d1b5dfb6a89a1b2d79786c21d0cb63a05e8a2082984b64b77d80955e3b97eab17273775162ba372511b711fea2f7608f216e68a67bb22d6.js" integrity="sha512-osWwYsh5mPBNG137aomhsteXhsIdDLY6BeiiCCmEtkt32AlV47l&#43;qxcnN3UWK6NyURtxH&#43;ovdgjyFuaKZ7si1g=="></script>
+
+
+
+    </body>
+</html>

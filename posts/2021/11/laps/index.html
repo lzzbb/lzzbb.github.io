@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="author" content="map[name:lzz]">
+<meta name="description" content="防止PTH攻击 域机器的本地管理员很少被使用，但是给网路安全却带来了很大的风险。攻击者如果获取了本地管理员的NTLM，不需要破解，就可以尝试通过PTH攻击域内其他主机。为了解决这个问题，微软在2014年发布了KB2871997和KB2928120两个补丁，普通本地管理员(SID不等于500)PTH方式失效。
+本地管理员密码解决方案 (LAPS) 为在域中的每台计算机上使用具有相同密码的公共本地帐户的问题提供了解决方案。LAPS 通过为域中每台计算机上的公共本地管理员帐户设置不同的随机密码来解决此问题。使用该解决方案的域管理员可以确定哪些用户有权读取密码。
+LAPS要点 通过组策略开启部署LAPS后可以导出保存laps组策略报告浏览相关信息
+在LDAP中也体现了ms-mcs-AdmPwdExpirationTime和ms-mcs-AdmPwd字段
+其中ms-mcs-AdmPwdExpirationTime只要是经过了域身份验证都可以进行枚举；ms-mcs-AdmPwd只能由域管理员查看。
+防御措施 1. 尽管LAPS有效防御了PTH攻击，但由于ms-mcs-AdmPwd字段在LDAP中是以明文存储的，在攻击者拿到整个域权限后可以枚举所有的密码，所以LAP也需要在一个短的周期内更改密码。 2. 对域内进行加固。 AD CHECK 可以检查 CN=ms-Mcs-AdmPwd,CN=Schema,CN=Configuration,DC=redteam,DC=local是否存在CN=ms-Mcs-AdmPwd字段来判断是否部署LAPS。" />
+<meta name="keywords" content="homepage, blog, science, informatics, development, programming, AD" />
+<meta name="robots" content="noodp" />
+<meta name="theme-color" content="" />
+<link rel="canonical" href="https://lzzbb.github.io/posts/2021/11/laps/" />
+
+
+    <title>
+        
+            laps :: lzzzzzzz 
+        
+    </title>
+
+
+
+<link href="https://cdnjs.cloudflare.com/ajax/libs/flag-icon-css/3.5.0/css/flag-icon.min.css" rel="stylesheet"
+    type="text/css">
+
+
+
+<link rel="stylesheet" href="https://lzzbb.github.io/main.2461b42f711aae674dd78e353275891fa072d7bf2ea9fbd577297a99dde78461.css">
+
+
+
+    <link rel="apple-touch-icon" sizes="180x180" href="https://lzzbb.github.io/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="https://lzzbb.github.io/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="https://lzzbb.github.io/favicon-16x16.png">
+    <link rel="manifest" href="https://lzzbb.github.io/site.webmanifest">
+    <link rel="mask-icon" href="https://lzzbb.github.io/safari-pinned-tab.svg" color="">
+    <link rel="shortcut icon" href="https://lzzbb.github.io/favicon.ico">
+    <meta name="msapplication-TileColor" content="">
+
+
+<meta itemprop="name" content="laps">
+<meta itemprop="description" content="防止PTH攻击 域机器的本地管理员很少被使用，但是给网路安全却带来了很大的风险。攻击者如果获取了本地管理员的NTLM，不需要破解，就可以尝试通过PTH攻击域内其他主机。为了解决这个问题，微软在2014年发布了KB2871997和KB2928120两个补丁，普通本地管理员(SID不等于500)PTH方式失效。
+本地管理员密码解决方案 (LAPS) 为在域中的每台计算机上使用具有相同密码的公共本地帐户的问题提供了解决方案。LAPS 通过为域中每台计算机上的公共本地管理员帐户设置不同的随机密码来解决此问题。使用该解决方案的域管理员可以确定哪些用户有权读取密码。
+LAPS要点 通过组策略开启部署LAPS后可以导出保存laps组策略报告浏览相关信息
+在LDAP中也体现了ms-mcs-AdmPwdExpirationTime和ms-mcs-AdmPwd字段
+其中ms-mcs-AdmPwdExpirationTime只要是经过了域身份验证都可以进行枚举；ms-mcs-AdmPwd只能由域管理员查看。
+防御措施 1. 尽管LAPS有效防御了PTH攻击，但由于ms-mcs-AdmPwd字段在LDAP中是以明文存储的，在攻击者拿到整个域权限后可以枚举所有的密码，所以LAP也需要在一个短的周期内更改密码。 2. 对域内进行加固。 AD CHECK 可以检查 CN=ms-Mcs-AdmPwd,CN=Schema,CN=Configuration,DC=redteam,DC=local是否存在CN=ms-Mcs-AdmPwd字段来判断是否部署LAPS。"><meta itemprop="datePublished" content="2021-11-12T00:00:00+00:00" />
+<meta itemprop="dateModified" content="2022-05-20T20:47:44+08:00" />
+<meta itemprop="wordCount" content="19"><meta itemprop="image" content="https://lzzbb.github.io/"/>
+<meta itemprop="keywords" content="AD," />
+<meta name="twitter:card" content="summary_large_image"/>
+<meta name="twitter:image" content="https://lzzbb.github.io/"/>
+
+<meta name="twitter:title" content="laps"/>
+<meta name="twitter:description" content="防止PTH攻击 域机器的本地管理员很少被使用，但是给网路安全却带来了很大的风险。攻击者如果获取了本地管理员的NTLM，不需要破解，就可以尝试通过PTH攻击域内其他主机。为了解决这个问题，微软在2014年发布了KB2871997和KB2928120两个补丁，普通本地管理员(SID不等于500)PTH方式失效。
+本地管理员密码解决方案 (LAPS) 为在域中的每台计算机上使用具有相同密码的公共本地帐户的问题提供了解决方案。LAPS 通过为域中每台计算机上的公共本地管理员帐户设置不同的随机密码来解决此问题。使用该解决方案的域管理员可以确定哪些用户有权读取密码。
+LAPS要点 通过组策略开启部署LAPS后可以导出保存laps组策略报告浏览相关信息
+在LDAP中也体现了ms-mcs-AdmPwdExpirationTime和ms-mcs-AdmPwd字段
+其中ms-mcs-AdmPwdExpirationTime只要是经过了域身份验证都可以进行枚举；ms-mcs-AdmPwd只能由域管理员查看。
+防御措施 1. 尽管LAPS有效防御了PTH攻击，但由于ms-mcs-AdmPwd字段在LDAP中是以明文存储的，在攻击者拿到整个域权限后可以枚举所有的密码，所以LAP也需要在一个短的周期内更改密码。 2. 对域内进行加固。 AD CHECK 可以检查 CN=ms-Mcs-AdmPwd,CN=Schema,CN=Configuration,DC=redteam,DC=local是否存在CN=ms-Mcs-AdmPwd字段来判断是否部署LAPS。"/>
+
+
+
+
+
+
+
+
+    <meta property="article:published_time" content="2021-11-12 00:00:00 &#43;0000 UTC" />
+
+
+
+
+
+
+
+
+
+
+    </head>
+
+    
+        <body>
+    
+    
+        <div class="container">
+            <header class="header">
+    <span class="header__inner">
+        <a href="https://lzzbb.github.io/" style="text-decoration: none;">
+    <div class="logo">
+        
+            <span class="logo__mark">></span>
+            <span class="logo__text">cd ~/</span>
+            <span class="logo__cursor" style=
+                  "
+                   
+                   ">
+            </span>
+        
+    </div>
+</a>
+
+
+        <span class="header__right">
+            
+                <nav class="menu">
+    <ul class="menu__inner"><li><a href="https://lzzbb.github.io/posts">Posts</a></li><li><a href="https://lzzbb.github.io/tags/">Tags</a></li>
+    </ul>
+</nav>
+
+                <span class="menu-trigger">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                        <path d="M0 0h24v24H0z" fill="none"/>
+                        <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/>
+                    </svg>
+                </span>
+            
+        </span>
+    </span>
+</header>
+
+
+            <div class="content">
+                
+  <main class="post">
+
+    <div class="post-info">
+      <p>
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-clock">
+          <circle cx="12" cy="12" r="10"></circle>
+          <polyline points="12 6 12 12 16 14"></polyline>
+        </svg>
+        One minute
+
+        
+      </p>
+    </div>
+
+    <article>
+      <h1 class="post-title">
+        <a href="https://lzzbb.github.io/posts/2021/11/laps/">laps</a>
+      </h1>
+
+      
+
+      
+
+      
+
+      <div class="post-content">
+        <h3 id="防止pth攻击">防止PTH攻击</h3>
+<p>域机器的本地管理员很少被使用，但是给网路安全却带来了很大的风险。攻击者如果获取了本地管理员的NTLM，不需要破解，就可以尝试通过PTH攻击域内其他主机。为了解决这个问题，微软在2014年发布了KB2871997和KB2928120两个补丁，普通本地管理员(SID不等于500)PTH方式失效。</p>
+<p>本地管理员密码解决方案 (LAPS) 为在域中的每台计算机上使用具有相同密码的公共本地帐户的问题提供了解决方案。LAPS 通过为域中每台计算机上的公共本地管理员帐户设置不同的随机密码来解决此问题。使用该解决方案的域管理员可以确定哪些用户有权读取密码。</p>
+<h3 id="laps要点">LAPS要点</h3>
+<p>通过组策略开启部署LAPS后可以导出保存laps组策略报告浏览相关信息</p>
+<p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/laps/1.png" alt=""></p>
+<p>在LDAP中也体现了ms-mcs-AdmPwdExpirationTime和ms-mcs-AdmPwd字段</p>
+<p>其中ms-mcs-AdmPwdExpirationTime只要是经过了域身份验证都可以进行枚举；ms-mcs-AdmPwd只能由域管理员查看。</p>
+<p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/laps/2.png" alt=""></p>
+<h3 id="防御措施">防御措施</h3>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-text" data-lang="text"><span class="line"><span class="cl">1. 尽管LAPS有效防御了PTH攻击，但由于ms-mcs-AdmPwd字段在LDAP中是以明文存储的，在攻击者拿到整个域权限后可以枚举所有的密码，所以LAP也需要在一个短的周期内更改密码。
+</span></span><span class="line"><span class="cl">2. 对域内进行加固。
+</span></span></code></pre></div><h3 id="ad-check">AD CHECK</h3>
+<p>可以检查 CN=ms-Mcs-AdmPwd,CN=Schema,CN=Configuration,DC=redteam,DC=local是否存在CN=ms-Mcs-AdmPwd字段来判断是否部署LAPS。</p>
+<p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/laps/3.png" alt=""></p>
+
+      </div>
+    </article>
+
+    <hr />
+
+    <div class="post-info">
+      
+    <p>
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-tag meta-icon"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7" y2="7"></line></svg>
+
+        <span class="tag"><a href="https://lzzbb.github.io/tags/ad/">AD</a></span>
+        
+    </p>
+
+      
+
+      <p>
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-file-text">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+          <polyline points="14 2 14 8 20 8"></polyline>
+          <line x1="16" y1="13" x2="8" y2="13"></line>
+          <line x1="16" y1="17" x2="8" y2="17"></line>
+          <polyline points="10 9 9 9 8 9"></polyline>
+        </svg>
+        19 Words
+      </p>
+
+      <p>
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-calendar">
+          <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+          <line x1="16" y1="2" x2="16" y2="6"></line>
+          <line x1="8" y1="2" x2="8" y2="6"></line>
+          <line x1="3" y1="10" x2="21" y2="10"></line>
+        </svg>
+        
+          2021-11-12 08:00 &#43;0800
+        
+
+         
+          
+            
+              (Last updated: 2022-05-20 20:47 &#43;0800)
+            
+          
+        
+      </p>
+        <p>
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-git-commit">
+            <circle cx="12" cy="12" r="4"></circle>
+            <line x1="1.05" y1="12" x2="7" y2="12"></line>
+            <line x1="17.01" y1="12" x2="22.96" y2="12"></line>
+          </svg>
+
+          <a href="https://github.com/coolbluemelvin/mlvn.io/commit/fb54e630fb5f850d9b0ef81645ca2de74a6f99ef" target="_blank" rel="noopener">fb54e63</a>
+          @ 2022-05-20
+        </p>
+    </div>
+
+    
+    <div class="pagination">
+        
+        <div class="pagination__title">
+            <span class="pagination__title-h">Read other posts</span>
+            <hr />
+        </div>
+        
+
+        <div class="pagination__buttons">
+            
+            <span class="button previous">
+                <a href="https://lzzbb.github.io/posts/2021/11/%E5%88%A9%E7%94%A8ms-samr%E5%8D%8F%E8%AE%AE%E4%BF%AE%E6%94%B9%E7%94%A8%E6%88%B7%E5%AF%86%E7%A0%81/">
+                    <span class="button__icon">←</span>
+                    <span class="button__text">利用MS-SAMR协议修改用户密码</span>
+                </a>
+            </span>
+            
+
+            
+            <span class="button next">
+                <a href="https://lzzbb.github.io/posts/2021/09/mscash/">
+                    <span class="button__text">MSCASH</span>
+                    <span class="button__icon">→</span>
+                </a>
+            </span>
+            
+        </div>
+    </div>
+
+
+    
+
+    
+
+  </main>
+
+            </div>
+
+            
+                <footer class="footer">
+    
+    
+</footer>
+
+            
+        </div>
+
+        
+
+
+
+<script type="text/javascript" src="https://lzzbb.github.io/bundle.min.a2c5b062c87998f04d1b5dfb6a89a1b2d79786c21d0cb63a05e8a2082984b64b77d80955e3b97eab17273775162ba372511b711fea2f7608f216e68a67bb22d6.js" integrity="sha512-osWwYsh5mPBNG137aomhsteXhsIdDLY6BeiiCCmEtkt32AlV47l&#43;qxcnN3UWK6NyURtxH&#43;ovdgjyFuaKZ7si1g=="></script>
+
+
+
+    </body>
+</html>

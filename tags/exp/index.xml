@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>EXP on lzzzzzzz</title>
+    <link>https://lzzbb.github.io/tags/exp/</link>
+    <description>Recent content in EXP on lzzzzzzz</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <copyright>&lt;a href=&#34;https://creativecommons.org/licenses/by-nc/4.0/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;CC BY-NC 4.0&lt;/a&gt;</copyright>
+    <lastBuildDate>Fri, 13 May 2022 00:00:00 +0000</lastBuildDate><atom:link href="https://lzzbb.github.io/tags/exp/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>CVE-2022-26923（ADCS）</title>
+      <link>https://lzzbb.github.io/posts/2022/05/cve-2022-26923adcs/</link>
+      <pubDate>Fri, 13 May 2022 00:00:00 +0000</pubDate>
+      
+      <guid>https://lzzbb.github.io/posts/2022/05/cve-2022-26923adcs/</guid>
+      <description>漏洞披露 前置知识： 1.adcs可为域用户和机器账户申请证书
+2.PKINIT 为 Kerberos 的扩展协议，可通过 X.509 证书用来获取 Kerberos 票据。总而言之可以将申请的证书转化为对应的TGT。（域用户转为域用户的TGT，机器账户转为机器账户的TGT）
+3.PKCA扩展协议认证的时候，返回的PAC中包含了NTLM票据。（可以从用户证书中提取ntlm hash）
+证书服务安装： https://www.anquanke.com/post/id/245791
+漏洞概述 该漏洞与去年年底的nopac通过修改sAMAccountName来达到欺骗KDC类似；这个漏洞的利用是通过修改机器账户的dNSHostName属性，从而生成域内任意机器账户的证书进行利用。
+可结合以前的nopac分析文章看，原理类似：https://www.anquanke.com/post/id/264500
+定位ADCS服务器 1.域内利用certutil
+certutil -config - -ping
+2.LDAP中查找
+CN=Certification Authorities,CN=Public Key Services,CN=Services,CN=Configuration,DC=redteam,DC=lab
+用户申请证书 UPN（userPrincipalName）是基于Internet标准RFC 822的用户样式登录名，UPN是可选并在域林中的安全主体对象名中保持唯一。在创建用户时可以指定也可不单独指定，用户格式为：username@domain.name。
+域名：redteam.lab SamAccountName：marry NetBIOS登录名：reedteam\marry UserPrincipalName：marry@redteam.lab 用户申请证书时，ADCS Server将申请证书用户的UPN属性值添加到颁发证书的备用名称中，使用证书时将 UPN 从证书映射到目标用户进行识别，因为UPN是可选并在域林中的安全主体对象名中保持唯一，所以通过修改成与任意DC相同的UPN属性不会成立。
+机器账户申请证书 机器账户申请证书时，CA 将从 Active Directory 中请求者用户对象的dNSHostName属性获得的值添加到已颁发证书的主题备用名称中进行识别，dNSHostName属性在AD中不要求唯一，所以可以通过修改成与任意DC相同的dNSHostName来达到欺骗ADCS的效果，实现域内提权。
+漏洞利用需要修改机器账户dNSHostName字段，但如https://www.netspi.com/blog/technical/network-penetration-testing/machineaccountquota-is-useful-sometimes/所说：
+ 修改 samAccountName、DnsHostname 或 msDS-AdditionalDnsHostName 属性时SPN 列表会自动更新。
+ 添加机器帐户默认会创建4个SPN,包括以下内容：
+1. HOST/MachineAccountName 2. HOST/MachineAccountName.domain.name 3. RestrictedKrbHost/MachineAccountName 4. RestrictedKrbhost/MachineAccountName.domain.name 意味着将要利用的机器账户改成和DC相同的SPN，但是SPN是网络控制器服务实例的唯一标识符，Kerberos身份验证使用它来将服务实例与服务登录帐户相关联，这时会产生冲突；但如果servicePrincipalName属性中HOST/MachineAccountName.domain.name和RestrictedKrbhost/MachineAccountName.domain.name在设置以上属性之前已被删除，那么SPN列表将不会更新，除非再次给该字段赋值。
+漏洞利用 实验环境 域名：redteam.lab 1.ADCS服务器：AdcsMachine@192.168.129.151 2.域内域控Server2016：DC1@192.168.129.130 2.</description>
+    </item>
+    
+    <item>
+      <title>通过DNS进行Kerberos Relay</title>
+      <link>https://lzzbb.github.io/posts/2022/02/%E9%80%9A%E8%BF%87dns%E8%BF%9B%E8%A1%8Ckerberos-relay/</link>
+      <pubDate>Fri, 25 Feb 2022 00:00:00 +0000</pubDate>
+      
+      <guid>https://lzzbb.github.io/posts/2022/02/%E9%80%9A%E8%BF%87dns%E8%BF%9B%E8%A1%8Ckerberos-relay/</guid>
+      <description>当时成功后没截图，环境又出问题不想搭了，下面有些截图出处作者，旨在阐明自己的观点和理解
+利用条件 一台Linux，同C段有一台域机器，能访问ADCS Web注册页面
+漏洞存因 1.自 Windows Vista 以来的所有 Windows 都默认启用了IPV6，并且优先级比IPV4更高，每台机器都会定期请求DNS配置。
+如果攻击者获取了一台linux权限，并在广播域内存在另外一台域机器，可以利用mitm6对其进行DNS欺骗，让域机器认定linux是自己的权威域名服务器。
+2.AD中的 DNS 支持使用 Kerberos 在 DNS 上进行身份验证，用于此使具有动态地址的网络客户端的 DNS 记录与其当前 IP 地址保持同步：
+1. 域内机器查询DNS中的SOA记录。 2. 域内DNS通常绑定在域控上，对查询进行回应。 3. 域机器请求对A记录进行动态更新。 4. 因为没有提供身份验证，DNS拒绝动态更新。 5. 客户端使用TKEY查询来协商经过身份验证的查询的密钥。 6. 服务器回答TKEY资源记录，完成身份验证。 7. 客户端再次发送动态更新，但现在伴随着一条TSIG记录，该记录是使用在步骤5和6中建立的密钥的签名。 8. 服务器更新其DNS记录。 第 5 步和第 6 步，包含 Kerberos 身份验证过程：
+wireshark中提供直接将keytab 导入Kerberos，能将加密字段进行解密。
+利用上述流程，mitm6 可以将自己宣传为 DNS 服务器，所以受害者将发送SOA到攻击者指定的假服务器，如果攻击者拒绝他们的动态更新，再使用 Kerberos 进行身份验证。
+3.许多服务类实际上会隐式映射到 HOST 类（包括 DNS），因此当受害者请求 DNS 服务的票证时，实际上适用于具有 HOST SPN 的任何帐户。这是默认在域中的所有计算机帐户上设置的，因此可以针对在这些帐户下运行的任何服务。
+4.在去年的关于ADCS利用的白皮书中，ESC8的利用涉及 NTLM 中继到证书服务的 HTTP 接口部分来颁发证书。该接口接受 NTLM 身份验证并没有强制验证签名， 因此可以将接收到的Kerberos 身份验证转发到 ADCS web页面来申请用户证书。</description>
+    </item>
+    
+    <item>
+      <title>Name impersonation and KDC bamboozling 分析</title>
+      <link>https://lzzbb.github.io/posts/2021/12/name-impersonation-and-kdc-bamboozling-%E5%88%86%E6%9E%90/</link>
+      <pubDate>Thu, 30 Dec 2021 00:00:00 +0000</pubDate>
+      
+      <guid>https://lzzbb.github.io/posts/2021/12/name-impersonation-and-kdc-bamboozling-%E5%88%86%E6%9E%90/</guid>
+      <description>文章首发于安全客：https://www.anquanke.com/post/id/264500
+0x00 漏洞背景 今年十一月Cliff Fisher 在推特披露了CVE-2021-42278和CVE-2021-42287两个关于AD域漏洞相关信息，该漏洞影响巨大，在默认情况下只需一个域用户即可拿到域内最高权限。
+0x01 披露时间线 11月10日Cliff Fisher在推特发布了相关的漏洞信息。
+12月10日Charlie Clark在博客发布漏洞原理及利用手段。
+12月11日cube0x0在github发布了noPac，实现了真正的武器化。
+0x02 漏洞概述 漏洞的产生本质是windows机器账户和kerbeors之间协调沟通所产生的逻辑问题。
+CVE-2021-42278 - KB5008102  允许攻击者任意修改计算机帐户sAMAccountName字段，进而模拟域控申请票据。
+ 加入域的机器账户默认由$结尾，samAccountName默认和域机器名一致。但DC没有对sAMAccountName属性进行合法性判断，导致删除sAMAccountName结尾的$照样可以以机器用户身份申请TGT票据。
+什么是sAMAccountName
+sAMAccountName 属性是一个登录名，用于支持以前版本的 Windows 中的客户端和服务器，例如 Windows NT 4.0、Windows 95、Windows 98 和 LAN Manager。 登录名必须少于 20 个字符，在域中的所有安全主体对象中必须唯一，并且不能包含以下任何字符：
+ &amp;ldquo;/ \ [ ] : ; | = , + * ? &amp;lt; &amp;gt;
+ userPrincipalName是基于Internet标准RFC 822的用户样式登录名，UPN是可选并在域林中的安全主体对象名中保持唯一。在创建用户时可以指定也可不单独指定，用户格式为：username@domain.name。
+域名：redteam.lab SamAccountName：marry NetBIOS登录名：reedteam\marry UserPrincipalName：marry@redteam.lab 在 Active Directory中，存储帐户登录名或用户对象实际上是命名符号“Domain\LogonName ”中使用NetBIOS名称组合，该属性是域用户对象的必需属性；而SAMAccountName应始终与UPN主体名称保持一致，即SAMAccountName必须等于属性“UserPrincipalName” 的前缀部分。
+更改sAMAccountName
+漏洞凭借修改计算机帐户sAMAccountName字段来模拟域控申请票据，但直接将域内机器Evilsystem的sAMAccountName改为与域控相同(不加$)，结果显示异常。
+原因如https://www.netspi.com/blog/technical/network-penetration-testing/machineaccountquota-is-useful-sometimes/所说：
+ 修改 samAccountName、DnsHostname 或 msDS-AdditionalDnsHostName 属性时SPN 列表会自动更新。</description>
+    </item>
+    
+  </channel>
+</rss>

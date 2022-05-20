@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="author" content="map[name:lzz]">
+<meta name="description" content="MSCACHE的原理 Macash（又叫domain cached credentials、DCC、域缓存凭据）在PC连接域控失败的时候（比如员工晚上将电脑带回家）会自动使用缓存凭据来进行登录，这相当于是除了SAM、NDTS，以外的第三个数据库。
+mscash hash 不是NTLM hash，无法用于PTH。
+系统默认保存 10 个凭据（可以更改），当被保存的凭据已经超过 10 个的话，新的凭据会覆盖掉老的凭据；凭据被缓存在注册表里。
+MSCASH的保存位置默认只有 SYSTEM 权限可读，位于HKEY_LOCAL_MACHINE\SECURITY\Cache（本地账户没有这个注册表项）
+使用本地用户打开这个注册表项都为空
+利用mimikatz离线破解 token::elevate #假冒令牌提升至system权限 lsadump::cache 下图是在一台域机器上用本地管理员用户进行登录，抓取到了域内administrator和marry的cache
+而不在域内机器是不能进行读取的
+以administrator为例：
+使用hashcat来进行离线破解,真正密码为Qq123456..
+‘$DCC2$10240#administrator#b25ba143ea4a2b1617f1d1db7a41f589’ hashcat -m2100 &amp;#39;$DCC2$10240#administrator#b25ba143ea4a2b1617f1d1db7a41f589&amp;#39; top10000.txt --force --potfile-disable 破解了域管administrator的明文密码，所以如果在横向没有头绪的时候，不要忘记了这个方法，可能会有意想不到的收获。
+禁用凭证缓存 在组策略中设置禁用缓存
+计算机配置—windows设置—安全设置—本地策略—安全选项 交互式登录：之前登录到缓存的次数（域控制器不可用时） 默认是10，设置为0" />
+<meta name="keywords" content="homepage, blog, science, informatics, development, programming, AD, tips" />
+<meta name="robots" content="noodp" />
+<meta name="theme-color" content="" />
+<link rel="canonical" href="https://lzzbb.github.io/posts/2021/09/mscash/" />
+
+
+    <title>
+        
+            MSCASH :: lzzzzzzz 
+        
+    </title>
+
+
+
+<link href="https://cdnjs.cloudflare.com/ajax/libs/flag-icon-css/3.5.0/css/flag-icon.min.css" rel="stylesheet"
+    type="text/css">
+
+
+
+<link rel="stylesheet" href="https://lzzbb.github.io/main.2461b42f711aae674dd78e353275891fa072d7bf2ea9fbd577297a99dde78461.css">
+
+
+
+    <link rel="apple-touch-icon" sizes="180x180" href="https://lzzbb.github.io/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="https://lzzbb.github.io/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="https://lzzbb.github.io/favicon-16x16.png">
+    <link rel="manifest" href="https://lzzbb.github.io/site.webmanifest">
+    <link rel="mask-icon" href="https://lzzbb.github.io/safari-pinned-tab.svg" color="">
+    <link rel="shortcut icon" href="https://lzzbb.github.io/favicon.ico">
+    <meta name="msapplication-TileColor" content="">
+
+
+<meta itemprop="name" content="MSCASH">
+<meta itemprop="description" content="MSCACHE的原理 Macash（又叫domain cached credentials、DCC、域缓存凭据）在PC连接域控失败的时候（比如员工晚上将电脑带回家）会自动使用缓存凭据来进行登录，这相当于是除了SAM、NDTS，以外的第三个数据库。
+mscash hash 不是NTLM hash，无法用于PTH。
+系统默认保存 10 个凭据（可以更改），当被保存的凭据已经超过 10 个的话，新的凭据会覆盖掉老的凭据；凭据被缓存在注册表里。
+MSCASH的保存位置默认只有 SYSTEM 权限可读，位于HKEY_LOCAL_MACHINE\SECURITY\Cache（本地账户没有这个注册表项）
+使用本地用户打开这个注册表项都为空
+利用mimikatz离线破解 token::elevate #假冒令牌提升至system权限 lsadump::cache 下图是在一台域机器上用本地管理员用户进行登录，抓取到了域内administrator和marry的cache
+而不在域内机器是不能进行读取的
+以administrator为例：
+使用hashcat来进行离线破解,真正密码为Qq123456..
+‘$DCC2$10240#administrator#b25ba143ea4a2b1617f1d1db7a41f589’ hashcat -m2100 &#39;$DCC2$10240#administrator#b25ba143ea4a2b1617f1d1db7a41f589&#39; top10000.txt --force --potfile-disable 破解了域管administrator的明文密码，所以如果在横向没有头绪的时候，不要忘记了这个方法，可能会有意想不到的收获。
+禁用凭证缓存 在组策略中设置禁用缓存
+计算机配置—windows设置—安全设置—本地策略—安全选项 交互式登录：之前登录到缓存的次数（域控制器不可用时） 默认是10，设置为0"><meta itemprop="datePublished" content="2021-09-18T00:00:00+00:00" />
+<meta itemprop="dateModified" content="2021-09-18T00:00:00+00:00" />
+<meta itemprop="wordCount" content="38"><meta itemprop="image" content="https://lzzbb.github.io/"/>
+<meta itemprop="keywords" content="AD,tips," />
+<meta name="twitter:card" content="summary_large_image"/>
+<meta name="twitter:image" content="https://lzzbb.github.io/"/>
+
+<meta name="twitter:title" content="MSCASH"/>
+<meta name="twitter:description" content="MSCACHE的原理 Macash（又叫domain cached credentials、DCC、域缓存凭据）在PC连接域控失败的时候（比如员工晚上将电脑带回家）会自动使用缓存凭据来进行登录，这相当于是除了SAM、NDTS，以外的第三个数据库。
+mscash hash 不是NTLM hash，无法用于PTH。
+系统默认保存 10 个凭据（可以更改），当被保存的凭据已经超过 10 个的话，新的凭据会覆盖掉老的凭据；凭据被缓存在注册表里。
+MSCASH的保存位置默认只有 SYSTEM 权限可读，位于HKEY_LOCAL_MACHINE\SECURITY\Cache（本地账户没有这个注册表项）
+使用本地用户打开这个注册表项都为空
+利用mimikatz离线破解 token::elevate #假冒令牌提升至system权限 lsadump::cache 下图是在一台域机器上用本地管理员用户进行登录，抓取到了域内administrator和marry的cache
+而不在域内机器是不能进行读取的
+以administrator为例：
+使用hashcat来进行离线破解,真正密码为Qq123456..
+‘$DCC2$10240#administrator#b25ba143ea4a2b1617f1d1db7a41f589’ hashcat -m2100 &#39;$DCC2$10240#administrator#b25ba143ea4a2b1617f1d1db7a41f589&#39; top10000.txt --force --potfile-disable 破解了域管administrator的明文密码，所以如果在横向没有头绪的时候，不要忘记了这个方法，可能会有意想不到的收获。
+禁用凭证缓存 在组策略中设置禁用缓存
+计算机配置—windows设置—安全设置—本地策略—安全选项 交互式登录：之前登录到缓存的次数（域控制器不可用时） 默认是10，设置为0"/>
+
+
+
+
+
+
+
+
+    <meta property="article:published_time" content="2021-09-18 00:00:00 &#43;0000 UTC" />
+
+
+
+
+
+
+
+
+
+
+    </head>
+
+    
+        <body>
+    
+    
+        <div class="container">
+            <header class="header">
+    <span class="header__inner">
+        <a href="https://lzzbb.github.io/" style="text-decoration: none;">
+    <div class="logo">
+        
+            <span class="logo__mark">></span>
+            <span class="logo__text">cd ~/</span>
+            <span class="logo__cursor" style=
+                  "
+                   
+                   ">
+            </span>
+        
+    </div>
+</a>
+
+
+        <span class="header__right">
+            
+                <nav class="menu">
+    <ul class="menu__inner"><li><a href="https://lzzbb.github.io/posts">Posts</a></li><li><a href="https://lzzbb.github.io/tags/">Tags</a></li>
+    </ul>
+</nav>
+
+                <span class="menu-trigger">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                        <path d="M0 0h24v24H0z" fill="none"/>
+                        <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/>
+                    </svg>
+                </span>
+            
+        </span>
+    </span>
+</header>
+
+
+            <div class="content">
+                
+  <main class="post">
+
+    <div class="post-info">
+      <p>
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-clock">
+          <circle cx="12" cy="12" r="10"></circle>
+          <polyline points="12 6 12 12 16 14"></polyline>
+        </svg>
+        One minute
+
+        
+      </p>
+    </div>
+
+    <article>
+      <h1 class="post-title">
+        <a href="https://lzzbb.github.io/posts/2021/09/mscash/">MSCASH</a>
+      </h1>
+
+      
+
+      
+
+      
+
+      <div class="post-content">
+        <h3 id="mscache的原理">MSCACHE的原理</h3>
+<p>Macash（又叫domain cached credentials、DCC、域缓存凭据）在PC连接域控失败的时候（比如员工晚上将电脑带回家）会自动使用缓存凭据来进行登录，这相当于是除了SAM、NDTS，以外的第三个数据库。</p>
+<p><code>mscash hash 不是NTLM hash，无法用于PTH。</code></p>
+<p>系统默认保存 10 个凭据（可以更改），当被保存的凭据已经超过 10 个的话，新的凭据会覆盖掉老的凭据；凭据被缓存在注册表里。</p>
+<p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/MSCASH/1.png" alt=""></p>
+<p>MSCASH的保存位置默认只有 SYSTEM 权限可读，位于HKEY_LOCAL_MACHINE\SECURITY\Cache（本地账户没有这个注册表项）</p>
+<p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/MSCASH/2.jpg" alt=""></p>
+<p>使用本地用户打开这个注册表项都为空</p>
+<p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/MSCASH/3.jpg" alt=""></p>
+<h3 id="利用mimikatz离线破解">利用mimikatz离线破解</h3>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-text" data-lang="text"><span class="line"><span class="cl">token::elevate    #假冒令牌提升至system权限
+</span></span><span class="line"><span class="cl">lsadump::cache
+</span></span></code></pre></div><p>下图是在一台域机器上用本地管理员用户进行登录，抓取到了域内administrator和marry的cache</p>
+<p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/MSCASH/4.jpg" alt=""></p>
+<p>而不在域内机器是不能进行读取的</p>
+<p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/MSCASH/5.jpg" alt=""></p>
+<p>以administrator为例：</p>
+<p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/MSCASH/6.jpg" alt=""></p>
+<p>使用hashcat来进行离线破解,真正密码为Qq123456..</p>
+<p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/MSCASH/7.jpg" alt=""></p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-text" data-lang="text"><span class="line"><span class="cl">‘$DCC2$10240#administrator#b25ba143ea4a2b1617f1d1db7a41f589’
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">hashcat  -m2100 &#39;$DCC2$10240#administrator#b25ba143ea4a2b1617f1d1db7a41f589&#39;  top10000.txt  --force --potfile-disable
+</span></span></code></pre></div><p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/MSCASH/9.jpg" alt=""></p>
+<p>破解了域管administrator的明文密码，所以如果在横向没有头绪的时候，不要忘记了这个方法，可能会有意想不到的收获。</p>
+<h2 id="禁用凭证缓存">禁用凭证缓存</h2>
+<p>在组策略中设置禁用缓存</p>
+<p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/MSCASH/10.png" alt=""></p>
+<p>计算机配置—windows设置—安全设置—本地策略—安全选项 交互式登录：之前登录到缓存的次数（域控制器不可用时） 默认是10，设置为0</p>
+
+      </div>
+    </article>
+
+    <hr />
+
+    <div class="post-info">
+      
+    <p>
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-tag meta-icon"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7" y2="7"></line></svg>
+
+        <span class="tag"><a href="https://lzzbb.github.io/tags/ad/">AD</a></span>
+        <span class="tag"><a href="https://lzzbb.github.io/tags/tips/">tips</a></span>
+        
+    </p>
+
+      
+
+      <p>
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-file-text">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+          <polyline points="14 2 14 8 20 8"></polyline>
+          <line x1="16" y1="13" x2="8" y2="13"></line>
+          <line x1="16" y1="17" x2="8" y2="17"></line>
+          <polyline points="10 9 9 9 8 9"></polyline>
+        </svg>
+        38 Words
+      </p>
+
+      <p>
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-calendar">
+          <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+          <line x1="16" y1="2" x2="16" y2="6"></line>
+          <line x1="8" y1="2" x2="8" y2="6"></line>
+          <line x1="3" y1="10" x2="21" y2="10"></line>
+        </svg>
+        
+          2021-09-18 08:00 &#43;0800
+        
+
+         
+          
+        
+      </p>
+    </div>
+
+    
+    <div class="pagination">
+        
+        <div class="pagination__title">
+            <span class="pagination__title-h">Read other posts</span>
+            <hr />
+        </div>
+        
+
+        <div class="pagination__buttons">
+            
+            <span class="button previous">
+                <a href="https://lzzbb.github.io/posts/2021/11/laps/">
+                    <span class="button__icon">←</span>
+                    <span class="button__text">laps</span>
+                </a>
+            </span>
+            
+
+            
+            <span class="button next">
+                <a href="https://lzzbb.github.io/posts/2021/08/dcshadow/">
+                    <span class="button__text">DCShadow</span>
+                    <span class="button__icon">→</span>
+                </a>
+            </span>
+            
+        </div>
+    </div>
+
+
+    
+
+    
+
+  </main>
+
+            </div>
+
+            
+                <footer class="footer">
+    
+    
+</footer>
+
+            
+        </div>
+
+        
+
+
+
+<script type="text/javascript" src="https://lzzbb.github.io/bundle.min.a2c5b062c87998f04d1b5dfb6a89a1b2d79786c21d0cb63a05e8a2082984b64b77d80955e3b97eab17273775162ba372511b711fea2f7608f216e68a67bb22d6.js" integrity="sha512-osWwYsh5mPBNG137aomhsteXhsIdDLY6BeiiCCmEtkt32AlV47l&#43;qxcnN3UWK6NyURtxH&#43;ovdgjyFuaKZ7si1g=="></script>
+
+
+
+    </body>
+</html>

